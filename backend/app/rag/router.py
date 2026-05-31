@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth import verify_api_key
 from app.database import get_db
 from app.rag.schemas import (
     AnswerRequest,
@@ -27,6 +28,7 @@ from app.rag.vector_service import (
 
 router = APIRouter(
     tags=["RAG"],
+    dependencies=[Depends(verify_api_key)],
 )
 
 

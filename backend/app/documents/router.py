@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.auth import verify_api_key
 from app.database import get_db
 from app.documents.schemas import DocumentCreate, DocumentResponse
 from app.documents.service import (
@@ -13,6 +14,7 @@ from app.documents.service import (
 
 router = APIRouter(
     tags=["Documents"],
+    dependencies=[Depends(verify_api_key)],
 )
 
 
