@@ -6,3 +6,4 @@ python-dotenv
 redis
 openai
 qdrant-client
+python-multipart

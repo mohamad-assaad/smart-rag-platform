@@ -3,16 +3,20 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.customers.service import get_customer_by_id
 from app.documents.schemas import DocumentCreate
-from app.models import Customer, Document
+from app.models import Document
 
 
-def create_document(
+def create_document_for_customer(
     db: Session,
     customer_id: UUID,
     document_data: DocumentCreate,
 ) -> Document:
-    customer = db.query(Customer).filter(Customer.id == customer_id).first()
+    customer = get_customer_by_id(
+        db=db,
+        customer_id=customer_id,
+    )
 
     if customer is None:
         raise HTTPException(
@@ -33,10 +37,21 @@ def create_document(
     return document
 
 
-def get_documents_by_customer(
+def get_customer_documents(
     db: Session,
     customer_id: UUID,
 ) -> list[Document]:
+    customer = get_customer_by_id(
+        db=db,
+        customer_id=customer_id,
+    )
+
+    if customer is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Customer not found",
+        )
+
     return (
         db.query(Document)
         .filter(Document.customer_id == customer_id)
