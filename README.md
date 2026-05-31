@@ -2,7 +2,7 @@
 
 A production-style Retrieval-Augmented Generation backend built with FastAPI, PostgreSQL, Redis, Qdrant, Docker Compose, and OpenAI integration.
 
-This project demonstrates a complete backend architecture for a scalable RAG system, including document ingestion, chunking, persistent storage, vector search, hybrid retrieval, caching, and LLM-based answer generation with source tracking.
+This project demonstrates a complete backend architecture for a scalable RAG system, including document ingestion, chunking, persistent storage, vector search, hybrid retrieval, caching, API key authentication, file upload support, and LLM-based answer generation with source tracking.
 
 ---
 
@@ -12,6 +12,7 @@ The goal of this project is to build a Smart RAG backend that can:
 
 * Manage customers
 * Store customer documents
+* Upload `.txt` files as documents
 * Split documents into chunks
 * Store chunks in PostgreSQL
 * Generate embeddings for chunks
@@ -22,6 +23,7 @@ The goal of this project is to build a Smart RAG backend that can:
 * Generate answers using an LLM
 * Return answer sources
 * Cache repeated answers using Redis
+* Protect API endpoints with an API key
 * Run the full stack using Docker Compose
 
 ---
@@ -37,6 +39,8 @@ The goal of this project is to build a Smart RAG backend that can:
 | Vector Database | Qdrant                               |
 | LLM             | OpenAI API                           |
 | Embeddings      | OpenAI Embeddings with mock fallback |
+| Authentication  | API Key Header                       |
+| File Upload     | FastAPI UploadFile                   |
 | Containers      | Docker                               |
 | Orchestration   | Docker Compose                       |
 | Language        | Python                               |
@@ -50,6 +54,8 @@ User / Client
     |
     v
 FastAPI API
+    |
+    |---- API Key Authentication
     |
     |---- PostgreSQL
     |       |---- customers
@@ -74,7 +80,7 @@ FastAPI API
 ```text
 Customer
    |
-Document
+Document or Uploaded .txt File
    |
 Chunking
    |
@@ -104,10 +110,12 @@ Redis Cache
 * Create customers
 * List customers
 * Store customers in PostgreSQL
+* Protected with API key authentication
 
 ### Documents
 
 * Add documents for a customer
+* Upload `.txt` files as documents
 * List customer documents
 * Store documents in PostgreSQL
 
@@ -134,6 +142,13 @@ Redis Cache
 
 * Cache repeated RAG answers
 * Return cached responses for repeated questions
+* Cache failures do not break the API
+
+### Authentication
+
+* API key protection using `X-API-Key`
+* Protected customer, document, and RAG endpoints
+* Clean error response for missing or invalid API keys
 
 ### Error Handling
 
@@ -141,6 +156,7 @@ Redis Cache
 * Handles OpenAI failures safely
 * Handles Redis failures safely
 * Handles missing vector data safely
+* Handles invalid file uploads safely
 
 ---
 
@@ -163,6 +179,7 @@ Create a `.env` file in the root folder:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
+API_KEY=dev-smart-rag-key
 ```
 
 The API container uses:
@@ -171,13 +188,49 @@ The API container uses:
 DATABASE_URL=postgresql://rag_user:rag_password@postgres:5432/smart_rag_db
 REDIS_URL=redis://redis:6379/0
 QDRANT_URL=http://qdrant:6333
+OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 USE_OPENAI_LLM=true
 USE_OPENAI_EMBEDDINGS=true
+API_KEY=dev-smart-rag-key
 ```
 
 Use `.env.example` as a safe template for GitHub.
+
+Do not commit your real `.env` file.
+
+---
+
+## Authentication
+
+Most API endpoints are protected with an API key.
+
+Required header:
+
+```text
+X-API-Key: dev-smart-rag-key
+```
+
+Example request:
+
+```powershell
+curl.exe -X GET "http://127.0.0.1:8000/customers" -H "X-API-Key: dev-smart-rag-key"
+```
+
+Without the API key, protected endpoints return:
+
+```json
+{
+  "detail": "Invalid or missing API key."
+}
+```
+
+The API key is configured through the `.env` file:
+
+```env
+API_KEY=dev-smart-rag-key
+```
 
 ---
 
@@ -198,6 +251,8 @@ http://127.0.0.1:8000/docs
 ---
 
 ## Health Checks
+
+Health endpoints are available for checking the backend and infrastructure services.
 
 ### API Health
 
@@ -250,8 +305,11 @@ GET /customers
 
 ```text
 POST /customers/{customer_id}/documents
+POST /customers/{customer_id}/documents/upload
 GET /customers/{customer_id}/documents
 ```
+
+The upload endpoint supports `.txt` files.
 
 ### Chunks
 
@@ -285,6 +343,20 @@ POST /rag/answer
 
 ### 1. Create Customer
 
+Endpoint:
+
+```text
+POST /customers
+```
+
+Header:
+
+```text
+X-API-Key: dev-smart-rag-key
+```
+
+Body:
+
 ```json
 {
   "name": "Delta Corp",
@@ -292,7 +364,21 @@ POST /rag/answer
 }
 ```
 
-### 2. Create Document
+### 2. Create Document Manually
+
+Endpoint:
+
+```text
+POST /customers/{customer_id}/documents
+```
+
+Header:
+
+```text
+X-API-Key: dev-smart-rag-key
+```
+
+Body:
 
 ```json
 {
@@ -303,17 +389,47 @@ POST /rag/answer
 
 ### 3. Create Chunks
 
+Endpoint:
+
 ```text
 POST /documents/{document_id}/chunks
 ```
 
+Header:
+
+```text
+X-API-Key: dev-smart-rag-key
+```
+
 ### 4. Store Vectors
+
+Endpoint:
 
 ```text
 POST /documents/{document_id}/vectors
 ```
 
+Header:
+
+```text
+X-API-Key: dev-smart-rag-key
+```
+
 ### 5. Ask RAG Answer
+
+Endpoint:
+
+```text
+POST /rag/answer
+```
+
+Header:
+
+```text
+X-API-Key: dev-smart-rag-key
+```
+
+Body:
 
 ```json
 {
@@ -339,6 +455,38 @@ Example response:
     }
   ]
 }
+```
+
+---
+
+## File Upload
+
+The API supports uploading `.txt` files and turning them into documents.
+
+Endpoint:
+
+```text
+POST /customers/{customer_id}/documents/upload
+```
+
+Required header:
+
+```text
+X-API-Key: dev-smart-rag-key
+```
+
+Example curl request:
+
+```powershell
+curl.exe -X POST "http://127.0.0.1:8000/customers/{customer_id}/documents/upload" -H "X-API-Key: dev-smart-rag-key" -F "file=@test-files/renewal-upload-test.txt;type=text/plain"
+```
+
+After uploading a file, the normal RAG flow can be used:
+
+```text
+POST /documents/{document_id}/chunks
+POST /documents/{document_id}/vectors
+POST /rag/answer
 ```
 
 ---
@@ -422,7 +570,10 @@ Implemented:
 * Hybrid retrieval
 * Answer sources
 * Docker Compose stack
+* Text file upload support
+* API key authentication
 * Production-style error handling
+* Basic backend logging
 
 ---
 
@@ -430,14 +581,14 @@ Implemented:
 
 Planned improvements:
 
-* User authentication
-* File upload support
+* User registration and login
+* JWT authentication
 * PDF parsing
 * Background workers for indexing
 * LangGraph orchestration
 * CI/CD pipeline
 * AWS ECS deployment
-* Monitoring and logging
+* Monitoring and logging dashboard
 * Frontend dashboard
 
 ---
