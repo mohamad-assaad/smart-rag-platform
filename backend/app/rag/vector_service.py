@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -17,6 +18,8 @@ from app.rag.schemas import VectorSearchRequest, VectorSearchResult
 from app.vector_store import qdrant_client
 
 
+logger = logging.getLogger(__name__)
+
 COLLECTION_NAME = "document_chunks"
 
 
@@ -26,6 +29,8 @@ def ensure_chunks_collection_exists() -> None:
 
     if COLLECTION_NAME in collection_names:
         return
+
+    logger.info("Creating Qdrant collection=%s", COLLECTION_NAME)
 
     qdrant_client.create_collection(
         collection_name=COLLECTION_NAME,
@@ -40,6 +45,8 @@ def store_document_chunks_in_qdrant(
     db: Session,
     document_id: UUID,
 ) -> dict:
+    logger.info("Storing vectors for document_id=%s", document_id)
+
     ensure_chunks_collection_exists()
 
     chunks = (
@@ -50,6 +57,11 @@ def store_document_chunks_in_qdrant(
     )
 
     if not chunks:
+        logger.warning(
+            "No chunks found for vector storage document_id=%s",
+            document_id,
+        )
+
         raise HTTPException(
             status_code=404,
             detail="No chunks found for this document. Create chunks first.",
@@ -78,6 +90,13 @@ def store_document_chunks_in_qdrant(
         points=points,
     )
 
+    logger.info(
+        "Stored vectors in Qdrant collection=%s document_id=%s count=%s",
+        COLLECTION_NAME,
+        document_id,
+        len(points),
+    )
+
     return {
         "status": "ok",
         "collection": COLLECTION_NAME,
@@ -89,6 +108,13 @@ def store_document_chunks_in_qdrant(
 def search_document_chunks_in_qdrant(
     vector_search_request: VectorSearchRequest,
 ) -> list[VectorSearchResult]:
+    logger.info(
+        "Running vector search document_id=%s question=%s limit=%s",
+        vector_search_request.document_id,
+        vector_search_request.question,
+        vector_search_request.limit,
+    )
+
     ensure_chunks_collection_exists()
 
     query_embedding = generate_embedding(vector_search_request.question)
@@ -125,5 +151,11 @@ def search_document_chunks_in_qdrant(
                 score=float(point.score),
             )
         )
+
+    logger.info(
+        "Vector search completed document_id=%s results=%s",
+        vector_search_request.document_id,
+        len(results),
+    )
 
     return results

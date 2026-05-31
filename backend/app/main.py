@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 
 from app import models
@@ -9,6 +11,12 @@ from app.rag.embeddings import get_embedding_status
 from app.rag.llm import get_llm_status
 from app.rag.router import router as rag_router
 from app.vector_store import qdrant_client
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
 
 app = FastAPI(
     title="Smart RAG Platform API",

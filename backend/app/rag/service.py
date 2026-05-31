@@ -1,4 +1,5 @@
 import json
+import logging
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -22,6 +23,8 @@ from app.rag.schemas import (
 from app.rag.vector_service import search_document_chunks_in_qdrant
 
 
+logger = logging.getLogger(__name__)
+
 SUPPORTED_SEARCH_MODES = {"keyword", "vector", "hybrid"}
 
 
@@ -29,12 +32,16 @@ def create_chunks_for_document(
     db: Session,
     document_id: UUID,
 ) -> list[Chunk]:
+    logger.info("Creating chunks for document_id=%s", document_id)
+
     document = get_document_by_id(
         db=db,
         document_id=document_id,
     )
 
     if document is None:
+        logger.warning("Document not found document_id=%s", document_id)
+
         raise HTTPException(
             status_code=404,
             detail="Document not found",
@@ -48,11 +55,19 @@ def create_chunks_for_document(
     )
 
     if existing_chunks:
+        logger.info(
+            "Chunks already exist for document_id=%s count=%s",
+            document_id,
+            len(existing_chunks),
+        )
+
         return existing_chunks
 
     text_chunks = split_text_into_chunks(document.content)
 
     if not text_chunks:
+        logger.warning("Document has no content to chunk document_id=%s", document_id)
+
         raise HTTPException(
             status_code=400,
             detail="Document has no content to chunk.",
@@ -75,6 +90,12 @@ def create_chunks_for_document(
     for chunk in created_chunks:
         db.refresh(chunk)
 
+    logger.info(
+        "Created chunks for document_id=%s count=%s",
+        document_id,
+        len(created_chunks),
+    )
+
     return created_chunks
 
 
@@ -95,6 +116,12 @@ def search_chunks(
     search_request: SearchRequest,
     top_k: int = 5,
 ) -> list[SearchResult]:
+    logger.info(
+        "Running keyword search document_id=%s question=%s",
+        search_request.document_id,
+        search_request.question,
+    )
+
     document_chunks = get_chunks_by_document(
         db=db,
         document_id=search_request.document_id,
@@ -121,13 +148,23 @@ def search_chunks(
 
     results.sort(key=lambda item: item.score, reverse=True)
 
-    return results[:top_k]
+    top_results = results[:top_k]
+
+    logger.info(
+        "Keyword search completed document_id=%s results=%s",
+        search_request.document_id,
+        len(top_results),
+    )
+
+    return top_results
 
 
 def validate_search_mode(search_mode: str) -> str:
     normalized_search_mode = search_mode.strip().lower()
 
     if normalized_search_mode not in SUPPORTED_SEARCH_MODES:
+        logger.warning("Invalid search_mode=%s", search_mode)
+
         raise HTTPException(
             status_code=400,
             detail=(
@@ -162,7 +199,7 @@ def get_cached_answer(cache_key: str) -> AnswerResponse | None:
         return AnswerResponse(**cached_data)
 
     except Exception:
-        # If Redis is down or cache data is invalid, do not break the API.
+        logger.exception("Failed to read answer from Redis cache")
         return None
 
 
@@ -177,8 +214,11 @@ def save_answer_to_cache(
             ttl_seconds,
             answer_response.model_dump_json(),
         )
+
+        logger.info("Saved answer to Redis cache key=%s", cache_key)
+
     except Exception:
-        # Cache failure should not break the answer endpoint.
+        logger.exception("Failed to save answer to Redis cache")
         return
 
 
@@ -187,6 +227,8 @@ def build_answer_from_sources(
     sources: list[AnswerSource],
 ) -> AnswerResponse:
     if not sources:
+        logger.info("No sources found for question=%s", question)
+
         return AnswerResponse(
             question=question,
             answer="I could not find relevant information in the document chunks.",
@@ -252,7 +294,12 @@ def get_vector_sources(
         vector_results: list[VectorSearchResult] = search_document_chunks_in_qdrant(
             vector_search_request=vector_search_request,
         )
+
     except Exception:
+        logger.exception(
+            "Vector search failed document_id=%s",
+            answer_request.document_id,
+        )
         return []
 
     return [
@@ -388,11 +435,24 @@ def generate_answer(
 ) -> AnswerResponse:
     search_mode = validate_search_mode(answer_request.search_mode)
 
+    logger.info(
+        "Generating answer document_id=%s search_mode=%s question=%s",
+        answer_request.document_id,
+        search_mode,
+        answer_request.question,
+    )
+
     cache_key = build_answer_cache_key(answer_request)
 
     cached_answer = get_cached_answer(cache_key)
 
     if cached_answer is not None:
+        logger.info(
+            "Cache hit for document_id=%s search_mode=%s",
+            answer_request.document_id,
+            search_mode,
+        )
+
         cached_answer.answer = "[CACHE HIT] " + cached_answer.answer
         return cached_answer
 
@@ -416,6 +476,13 @@ def generate_answer(
     save_answer_to_cache(
         cache_key=cache_key,
         answer_response=answer_response,
+    )
+
+    logger.info(
+        "Answer generated document_id=%s search_mode=%s sources=%s",
+        answer_request.document_id,
+        search_mode,
+        len(answer_response.sources),
     )
 
     return answer_response
