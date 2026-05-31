@@ -1,36 +1,73 @@
+import uuid
 from datetime import datetime
-from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
 
-class Customer(Base):
-    __tablename__ = "customers"
+class User(Base):
+    __tablename__ = "users"
 
-    id: Mapped[UUID] = mapped_column(
+    id = Column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid4,
+        default=uuid.uuid4,
+        index=True,
     )
-    name: Mapped[str] = mapped_column(
-        String(255),
+    email = Column(
+        String,
+        unique=True,
         nullable=False,
+        index=True,
     )
-    description: Mapped[str | None] = mapped_column(
-        Text,
+    full_name = Column(
+        String,
         nullable=True,
     )
-    created_at: Mapped[datetime] = mapped_column(
+    hashed_password = Column(
+        String,
+        nullable=False,
+    )
+    is_active = Column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+    created_at = Column(
         DateTime,
         default=datetime.utcnow,
         nullable=False,
     )
 
-    documents: Mapped[list["Document"]] = relationship(
+
+class Customer(Base):
+    __tablename__ = "customers"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        index=True,
+    )
+    name = Column(
+        String,
+        nullable=False,
+    )
+    description = Column(
+        Text,
+        nullable=True,
+    )
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+
+    documents = relationship(
+        "Document",
         back_populates="customer",
         cascade="all, delete-orphan",
     )
@@ -39,35 +76,39 @@ class Customer(Base):
 class Document(Base):
     __tablename__ = "documents"
 
-    id: Mapped[UUID] = mapped_column(
+    id = Column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid4,
+        default=uuid.uuid4,
+        index=True,
     )
-    customer_id: Mapped[UUID] = mapped_column(
+    customer_id = Column(
         UUID(as_uuid=True),
         ForeignKey("customers.id"),
         nullable=False,
+        index=True,
     )
-    file_name: Mapped[str] = mapped_column(
-        String(255),
+    file_name = Column(
+        String,
         nullable=False,
     )
-    content: Mapped[str] = mapped_column(
+    content = Column(
         Text,
         nullable=False,
     )
-    created_at: Mapped[datetime] = mapped_column(
+    created_at = Column(
         DateTime,
         default=datetime.utcnow,
         nullable=False,
     )
 
-    customer: Mapped["Customer"] = relationship(
+    customer = relationship(
+        "Customer",
         back_populates="documents",
     )
 
-    chunks: Mapped[list["Chunk"]] = relationship(
+    chunks = relationship(
+        "Chunk",
         back_populates="document",
         cascade="all, delete-orphan",
     )
@@ -76,30 +117,33 @@ class Document(Base):
 class Chunk(Base):
     __tablename__ = "chunks"
 
-    id: Mapped[UUID] = mapped_column(
+    id = Column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid4,
+        default=uuid.uuid4,
+        index=True,
     )
-    document_id: Mapped[UUID] = mapped_column(
+    document_id = Column(
         UUID(as_uuid=True),
         ForeignKey("documents.id"),
         nullable=False,
+        index=True,
     )
-    chunk_index: Mapped[int] = mapped_column(
+    chunk_index = Column(
         Integer,
         nullable=False,
     )
-    content: Mapped[str] = mapped_column(
+    content = Column(
         Text,
         nullable=False,
     )
-    created_at: Mapped[datetime] = mapped_column(
+    created_at = Column(
         DateTime,
         default=datetime.utcnow,
         nullable=False,
     )
 
-    document: Mapped["Document"] = relationship(
+    document = relationship(
+        "Document",
         back_populates="chunks",
     )

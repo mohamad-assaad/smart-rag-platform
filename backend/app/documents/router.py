@@ -3,18 +3,18 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.auth import verify_api_key
+from app.auth import get_current_user
 from app.database import get_db
 from app.documents.schemas import DocumentCreate, DocumentResponse
 from app.documents.service import (
     create_document_for_customer,
     get_customer_documents,
 )
+from app.models import User
 
 
 router = APIRouter(
     tags=["Documents"],
-    dependencies=[Depends(verify_api_key)],
 )
 
 
@@ -26,6 +26,7 @@ def create_document_endpoint(
     customer_id: UUID,
     document_data: DocumentCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return create_document_for_customer(
         db=db,
@@ -42,6 +43,7 @@ async def upload_document_endpoint(
     customer_id: UUID,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     if not file.filename:
         raise HTTPException(
@@ -90,6 +92,7 @@ async def upload_document_endpoint(
 def get_customer_documents_endpoint(
     customer_id: UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return get_customer_documents(
         db=db,

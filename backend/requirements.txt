@@ -7,3 +7,6 @@ redis
 openai
 qdrant-client
 python-multipart
+passlib[bcrypt]
+python-jose[cryptography]
+bcrypt==4.0.1

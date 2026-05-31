@@ -44,6 +44,7 @@ services:
       QDRANT_URL: http://qdrant:6333
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       API_KEY: ${API_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       OPENAI_MODEL: gpt-4o-mini
       OPENAI_EMBEDDING_MODEL: text-embedding-3-small
       USE_OPENAI_LLM: "true"

@@ -3,8 +3,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.auth import verify_api_key
+from app.auth import get_current_user
 from app.database import get_db
+from app.models import User
 from app.rag.schemas import (
     AnswerRequest,
     AnswerResponse,
@@ -28,7 +29,6 @@ from app.rag.vector_service import (
 
 router = APIRouter(
     tags=["RAG"],
-    dependencies=[Depends(verify_api_key)],
 )
 
 
@@ -39,6 +39,7 @@ router = APIRouter(
 def create_chunks_endpoint(
     document_id: UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return create_chunks_for_document(
         db=db,
@@ -53,6 +54,7 @@ def create_chunks_endpoint(
 def get_chunks_endpoint(
     document_id: UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return get_chunks_by_document(
         db=db,
@@ -66,6 +68,7 @@ def get_chunks_endpoint(
 def store_vectors_endpoint(
     document_id: UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return store_document_chunks_in_qdrant(
         db=db,
@@ -80,6 +83,7 @@ def store_vectors_endpoint(
 def search_chunks_endpoint(
     search_request: SearchRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return search_chunks(
         db=db,
@@ -93,6 +97,7 @@ def search_chunks_endpoint(
 )
 def vector_search_chunks_endpoint(
     vector_search_request: VectorSearchRequest,
+    current_user: User = Depends(get_current_user),
 ):
     return search_document_chunks_in_qdrant(
         vector_search_request=vector_search_request,
@@ -106,6 +111,7 @@ def vector_search_chunks_endpoint(
 def answer_question_endpoint(
     answer_request: AnswerRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return generate_answer(
         db=db,

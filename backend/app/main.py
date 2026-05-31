@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI
 
 from app import models
+from app.auth_router import router as auth_router
 from app.cache import redis_client
 from app.customers.router import router as customers_router
 from app.database import Base, engine
@@ -26,6 +27,7 @@ app = FastAPI(
 
 Base.metadata.create_all(bind=engine)
 
+app.include_router(auth_router)
 app.include_router(customers_router)
 app.include_router(documents_router)
 app.include_router(rag_router)
