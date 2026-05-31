@@ -27,6 +27,20 @@ type DocumentItem = {
   created_at: string;
 };
 
+type AnswerSource = {
+  chunk_id: string;
+  chunk_index: number;
+  score: number;
+  content: string;
+  source_type: string;
+};
+
+type AnswerResponse = {
+  question: string;
+  answer: string;
+  sources: AnswerSource[];
+};
+
 type AuthMode = "login" | "register";
 
 function App() {
@@ -50,12 +64,21 @@ function App() {
     []
   );
 
+  const [selectedDocumentId, setSelectedDocumentId] = useState("");
+  const [question, setQuestion] = useState(
+    "What should the account manager do before renewal?"
+  );
+  const [answerResult, setAnswerResult] = useState<AnswerResponse | null>(null);
+
   const [message, setMessage] = useState("");
   const [dashboardMessage, setDashboardMessage] = useState("");
   const [uploadMessage, setUploadMessage] = useState("");
+  const [answerMessage, setAnswerMessage] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const [isCustomersLoading, setIsCustomersLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnswerLoading, setIsAnswerLoading] = useState(false);
 
   function getAuthHeaders(savedToken: string) {
     return {
@@ -188,6 +211,7 @@ function App() {
     setCurrentUser(null);
     setCustomers([]);
     setUploadedDocuments([]);
+    setAnswerResult(null);
     setMessage("Logged out.");
   }
 
@@ -322,12 +346,65 @@ function App() {
         uploadedDocument,
         ...currentDocuments,
       ]);
+      setSelectedDocumentId(uploadedDocument.id);
       setSelectedFile(null);
       setUploadMessage("Document uploaded, chunked, and indexed successfully.");
     } catch {
       setUploadMessage("Could not connect to the backend.");
     } finally {
       setIsUploading(false);
+    }
+  }
+
+  async function handleAskAi(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token) {
+      setAnswerMessage("You must be logged in.");
+      return;
+    }
+
+    if (!selectedDocumentId) {
+      setAnswerMessage("Please select an uploaded document.");
+      return;
+    }
+
+    if (!question.trim()) {
+      setAnswerMessage("Please enter a question.");
+      return;
+    }
+
+    setIsAnswerLoading(true);
+    setAnswerMessage("Asking AI...");
+    setAnswerResult(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/rag/answer`, {
+        method: "POST",
+        headers: {
+          ...getAuthHeaders(token),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          document_id: selectedDocumentId,
+          question,
+          search_mode: "hybrid",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAnswerMessage(data.detail || "Could not generate answer.");
+        return;
+      }
+
+      setAnswerResult(data);
+      setAnswerMessage("Answer generated successfully.");
+    } catch {
+      setAnswerMessage("Could not connect to the backend.");
+    } finally {
+      setIsAnswerLoading(false);
     }
   }
 
@@ -499,25 +576,77 @@ function App() {
             </div>
           </div>
 
-          <div className="feature-grid">
-            <div className="feature-card">
-              <h3>Documents</h3>
-              <p>Upload customer notes and knowledge files.</p>
+          <div className="dashboard-section">
+            <div className="section-header">
+              <div>
+                <h2>Ask AI</h2>
+                <p>
+                  Ask a question against an uploaded document using hybrid
+                  retrieval and source tracking.
+                </p>
+              </div>
             </div>
 
-            <div className="feature-card">
-              <h3>Vector Search</h3>
-              <p>Store embeddings in Qdrant and search semantically.</p>
-            </div>
+            <form className="ask-form" onSubmit={handleAskAi}>
+              <select
+                value={selectedDocumentId}
+                onChange={(event) => setSelectedDocumentId(event.target.value)}
+              >
+                <option value="">Select uploaded document</option>
+                {uploadedDocuments.map((document) => (
+                  <option value={document.id} key={document.id}>
+                    {document.file_name}
+                  </option>
+                ))}
+              </select>
 
-            <div className="feature-card">
-              <h3>Ask AI</h3>
-              <p>Use hybrid retrieval to answer questions with sources.</p>
-            </div>
+              <textarea
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder="Ask a question about the uploaded document..."
+                rows={4}
+              />
+
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={isAnswerLoading}
+              >
+                {isAnswerLoading ? "Asking..." : "Ask AI"}
+              </button>
+            </form>
+
+            {answerMessage && <p className="message-box">{answerMessage}</p>}
+
+            {answerResult && (
+              <div className="answer-panel">
+                <h3>AI Answer</h3>
+                <p className="answer-text">{answerResult.answer}</p>
+
+                <h3>Sources</h3>
+                <div className="source-list">
+                  {answerResult.sources.length === 0 ? (
+                    <p className="muted-text">No sources returned.</p>
+                  ) : (
+                    answerResult.sources.map((source) => (
+                      <article className="source-card" key={source.chunk_id}>
+                        <div className="source-meta">
+                          <span>{source.source_type}</span>
+                          <span>Chunk {source.chunk_index}</span>
+                          <span>Score {source.score.toFixed(4)}</span>
+                        </div>
+                        <p>{source.content}</p>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <p className="next-note">
-            Next step: we will add Ask AI directly inside this dashboard.
+            This dashboard now supports login, customers, document upload,
+            automatic indexing, and Ask AI.
           </p>
         </section>
       </main>
