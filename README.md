@@ -10,36 +10,36 @@ This project demonstrates a complete backend architecture for a scalable RAG sys
 
 The goal of this project is to build a Smart RAG backend that can:
 
-- Manage customers
-- Store customer documents
-- Split documents into chunks
-- Store chunks in PostgreSQL
-- Generate embeddings for chunks
-- Store vectors in Qdrant
-- Search using keyword retrieval
-- Search using vector retrieval
-- Combine both with hybrid retrieval
-- Generate answers using an LLM
-- Return answer sources
-- Cache repeated answers using Redis
-- Run the full stack using Docker Compose
+* Manage customers
+* Store customer documents
+* Split documents into chunks
+* Store chunks in PostgreSQL
+* Generate embeddings for chunks
+* Store vectors in Qdrant
+* Search using keyword retrieval
+* Search using vector retrieval
+* Combine both with hybrid retrieval
+* Generate answers using an LLM
+* Return answer sources
+* Cache repeated answers using Redis
+* Run the full stack using Docker Compose
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| API Backend | FastAPI |
-| Database | PostgreSQL |
-| ORM | SQLAlchemy |
-| Cache | Redis |
-| Vector Database | Qdrant |
-| LLM | OpenAI API |
-| Embeddings | OpenAI Embeddings with mock fallback |
-| Containers | Docker |
-| Orchestration | Docker Compose |
-| Language | Python |
+| Layer           | Technology                           |
+| --------------- | ------------------------------------ |
+| API Backend     | FastAPI                              |
+| Database        | PostgreSQL                           |
+| ORM             | SQLAlchemy                           |
+| Cache           | Redis                                |
+| Vector Database | Qdrant                               |
+| LLM             | OpenAI API                           |
+| Embeddings      | OpenAI Embeddings with mock fallback |
+| Containers      | Docker                               |
+| Orchestration   | Docker Compose                       |
+| Language        | Python                               |
 
 ---
 
@@ -101,46 +101,46 @@ Redis Cache
 
 ### Customers
 
-- Create customers
-- List customers
-- Store customers in PostgreSQL
+* Create customers
+* List customers
+* Store customers in PostgreSQL
 
 ### Documents
 
-- Add documents for a customer
-- List customer documents
-- Store documents in PostgreSQL
+* Add documents for a customer
+* List customer documents
+* Store documents in PostgreSQL
 
 ### Chunking
 
-- Split document content into smaller chunks
-- Store chunks in PostgreSQL
-- Preserve chunk index and source document
+* Split document content into smaller chunks
+* Store chunks in PostgreSQL
+* Preserve chunk index and source document
 
 ### Retrieval
 
-- Keyword retrieval
-- Vector retrieval with Qdrant
-- Hybrid retrieval combining keyword and vector results
+* Keyword retrieval
+* Vector retrieval with Qdrant
+* Hybrid retrieval combining keyword and vector results
 
 ### LLM Answering
 
-- Generate answers using retrieved context
-- Return answer sources
-- OpenAI integration
-- Mock LLM fallback when OpenAI is unavailable
+* Generate answers using retrieved context
+* Return answer sources
+* OpenAI integration
+* Mock LLM fallback when OpenAI is unavailable
 
 ### Redis Cache
 
-- Cache repeated RAG answers
-- Return cached responses for repeated questions
+* Cache repeated RAG answers
+* Return cached responses for repeated questions
 
 ### Error Handling
 
-- Validates search mode
-- Handles OpenAI failures safely
-- Handles Redis failures safely
-- Handles missing vector data safely
+* Validates search mode
+* Handles OpenAI failures safely
+* Handles Redis failures safely
+* Handles missing vector data safely
 
 ---
 
@@ -385,24 +385,44 @@ This prevents the API from crashing.
 
 ---
 
+## Screenshots
+
+### GitHub Repository
+
+![GitHub Repository](screenshots/github-repo.png)
+
+### Swagger API Endpoints
+
+![Swagger Endpoints](screenshots/swagger-endpoints.png)
+
+### Hybrid RAG Answer
+
+![Hybrid RAG Answer](screenshots/rag-answer.png)
+
+### Qdrant Vector Health
+
+![Vector Health](screenshots/vector-health.png)
+
+---
+
 ## Current Status
 
 Implemented:
 
-- FastAPI backend
-- PostgreSQL persistence
-- SQLAlchemy models
-- Redis answer cache
-- Qdrant vector database
-- OpenAI LLM integration
-- Embeddings service
-- Mock fallback for LLM and embeddings
-- Keyword retrieval
-- Vector retrieval
-- Hybrid retrieval
-- Answer sources
-- Docker Compose stack
-- Production-style error handling
+* FastAPI backend
+* PostgreSQL persistence
+* SQLAlchemy models
+* Redis answer cache
+* Qdrant vector database
+* OpenAI LLM integration
+* Embeddings service
+* Mock fallback for LLM and embeddings
+* Keyword retrieval
+* Vector retrieval
+* Hybrid retrieval
+* Answer sources
+* Docker Compose stack
+* Production-style error handling
 
 ---
 
@@ -410,15 +430,15 @@ Implemented:
 
 Planned improvements:
 
-- User authentication
-- File upload support
-- PDF parsing
-- Background workers for indexing
-- LangGraph orchestration
-- CI/CD pipeline
-- AWS ECS deployment
-- Monitoring and logging
-- Frontend dashboard
+* User authentication
+* File upload support
+* PDF parsing
+* Background workers for indexing
+* LangGraph orchestration
+* CI/CD pipeline
+* AWS ECS deployment
+* Monitoring and logging
+* Frontend dashboard
 
 ---
 
