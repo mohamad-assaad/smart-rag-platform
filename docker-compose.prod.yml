@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: smart-rag-postgres-prod
+    environment:
+      POSTGRES_DB: smart_rag
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: smart-rag-redis-prod
+    ports:
+      - "6379:6379"
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: smart-rag-qdrant-prod
+    volumes:
+      - qdrant_prod_data:/qdrant/storage
+    ports:
+      - "6333:6333"
+
+  api:
+    build:
+      context: ./backend
+    container_name: smart-rag-api-prod
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/smart_rag
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      JWT_SECRET_KEY: change-this-secret-in-production
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: gpt-4o-mini
+    depends_on:
+      - postgres
+      - redis
+      - qdrant
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://127.0.0.1:8000
+    container_name: smart-rag-frontend-prod
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_prod_data:
+  qdrant_prod_data:
