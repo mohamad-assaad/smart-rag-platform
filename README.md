@@ -1,248 +1,234 @@
 # Smart RAG Platform
 
-A production-style Retrieval-Augmented Generation backend built with FastAPI, PostgreSQL, Redis, Qdrant, Docker Compose, and OpenAI integration.
+A production-style full-stack AI application for uploading customer knowledge, indexing documents, and generating grounded AI answers with source tracking.
 
-This project demonstrates a complete backend architecture for a scalable RAG system, including document ingestion, chunking, persistent storage, vector search, hybrid retrieval, caching, API key authentication, file upload support, and LLM-based answer generation with source tracking.
+Smart RAG Platform is built as an enterprise customer intelligence workspace. It allows teams to create customer records, upload text knowledge files, split documents into searchable chunks, store embeddings in a vector database, and ask AI-powered questions against indexed content.
+
+The project demonstrates a complete AI software product workflow, including authentication, backend APIs, database persistence, vector search, document processing, frontend dashboard design, Docker-based infrastructure, and production deployment preparation.
 
 ---
 
 ## Project Goals
 
-The goal of this project is to build a Smart RAG backend that can:
+The main goal of this project is to demonstrate the ability to build and ship a complete AI software product, not just a small demo.
 
-* Manage customers
-* Store customer documents
-* Upload `.txt` files as documents
-* Split documents into chunks
-* Store chunks in PostgreSQL
-* Generate embeddings for chunks
+This project includes:
+
+* A FastAPI backend with protected API routes
+* JWT authentication
+* PostgreSQL database models
+* Customer and document management
+* Document upload and chunking
+* Vector indexing with Qdrant
+* Redis service support
+* RAG question answering with source tracking
+* OpenAI integration with local fallback behavior
+* React + TypeScript frontend
+* Professional admin-center user interface
+* Docker Compose infrastructure
+* Production frontend build support
+* Preparation for AWS deployment
+
+---
+
+## Features
+
+### Authentication
+
+* User registration
+* User login
+* JWT access tokens
+* Protected backend routes
+* Current user session handling
+
+### Customer Management
+
+* Create customer records
+* View customer list
+* Store customer descriptions
+* Organize uploaded documents by customer
+
+### Document Upload and Indexing
+
+* Upload `.txt` customer knowledge files
+* Automatically create document records
+* Split uploaded text into clean chunks
+* Store chunks for retrieval
+* Generate vector embeddings
 * Store vectors in Qdrant
-* Search using keyword retrieval
-* Search using vector retrieval
-* Combine both with hybrid retrieval
-* Generate answers using an LLM
-* Return answer sources
-* Cache repeated answers using Redis
-* Protect API endpoints with an API key
-* Run the full stack using Docker Compose
+
+### Ask AI
+
+* Ask questions against uploaded customer documents
+* Hybrid-style retrieval flow
+* AI answer generation
+* Source tracking
+* Sources hidden by default
+* Expandable source chunks
+* Local fallback answers when OpenAI is unavailable
+
+### Frontend Admin Dashboard
+
+* Enterprise admin-center layout
+* Gray and white professional design
+* Left icon rail
+* Main navigation panel
+* Centered smart search bar
+* Search suggestions for pages and content
+* Overview, Customers, Documents, Upload Knowledge, and Ask AI pages
+* Modern Upload Knowledge interface
+* Clean Ask AI answer panel
 
 ---
 
 ## Tech Stack
 
-| Layer           | Technology                           |
-| --------------- | ------------------------------------ |
-| API Backend     | FastAPI                              |
-| Database        | PostgreSQL                           |
-| ORM             | SQLAlchemy                           |
-| Cache           | Redis                                |
-| Vector Database | Qdrant                               |
-| LLM             | OpenAI API                           |
-| Embeddings      | OpenAI Embeddings with mock fallback |
-| Authentication  | API Key Header                       |
-| File Upload     | FastAPI UploadFile                   |
-| Containers      | Docker                               |
-| Orchestration   | Docker Compose                       |
-| Language        | Python                               |
+### Backend
+
+* Python
+* FastAPI
+* SQLAlchemy
+* PostgreSQL
+* Redis
+* Qdrant
+* OpenAI API
+* JWT authentication
+* Docker
+
+### Frontend
+
+* React
+* TypeScript
+* Vite
+* CSS
+* Fetch API
+* Local storage token handling
+
+### Infrastructure
+
+* Docker Compose
+* PostgreSQL container
+* Redis container
+* Qdrant container
+* FastAPI backend container
+* Frontend production Dockerfile with Nginx
 
 ---
 
 ## Architecture
 
 ```text
-User / Client
-    |
-    v
-FastAPI API
-    |
-    |---- API Key Authentication
-    |
-    |---- PostgreSQL
-    |       |---- customers
-    |       |---- documents
-    |       |---- chunks
-    |
-    |---- Redis
-    |       |---- cached RAG answers
-    |
-    |---- Qdrant
-    |       |---- chunk vectors
-    |
-    |---- OpenAI
-            |---- LLM answers
-            |---- embeddings
+User
+ |
+ |  React + TypeScript Frontend
+ |  - Login/Register
+ |  - Customers
+ |  - Document Upload
+ |  - Ask AI
+ |
+ v
+FastAPI Backend
+ |
+ |-- Auth Module
+ |   - Register
+ |   - Login
+ |   - JWT verification
+ |
+ |-- Customers Module
+ |   - Create customers
+ |   - List customers
+ |
+ |-- Documents Module
+ |   - Upload text files
+ |   - Store document content
+ |
+ |-- RAG Module
+ |   - Chunk documents
+ |   - Generate embeddings
+ |   - Store vectors in Qdrant
+ |   - Retrieve relevant chunks
+ |   - Generate AI answers
+ |
+ |-- PostgreSQL
+ |   - Users
+ |   - Customers
+ |   - Documents
+ |   - Chunks
+ |
+ |-- Redis
+ |   - Cache/service support
+ |
+ |-- Qdrant
+ |   - Vector search
+ |
+ |-- OpenAI
+     - Answer generation when API key is available
 ```
 
 ---
 
-## RAG Flow
+## Screenshots
+
+Add screenshots inside the `screenshots` folder.
+
+Recommended screenshot files:
 
 ```text
-Customer
-   |
-Document or Uploaded .txt File
-   |
-Chunking
-   |
-PostgreSQL chunks
-   |
-Embeddings
-   |
-Qdrant vectors
-   |
-Hybrid Retrieval
-   |---- keyword search
-   |---- vector search
-   |
-LLM Answer
-   |
-Sources
-   |
-Redis Cache
+screenshots/frontend-login.png
+screenshots/frontend-overview.png
+screenshots/frontend-customers.png
+screenshots/frontend-upload.png
+screenshots/frontend-ask-ai-answer.png
+screenshots/frontend-ask-ai-sources.png
+```
+
+Example:
+
+```md
+![Login Page](screenshots/frontend-login.png)
+![Overview Page](screenshots/frontend-overview.png)
+![Upload Knowledge](screenshots/frontend-upload.png)
+![Ask AI Answer](screenshots/frontend-ask-ai-answer.png)
 ```
 
 ---
 
-## Features
+## Local Development Setup
 
-### Customers
+### 1. Clone the repository
 
-* Create customers
-* List customers
-* Store customers in PostgreSQL
-* Protected with API key authentication
-
-### Documents
-
-* Add documents for a customer
-* Upload `.txt` files as documents
-* List customer documents
-* Store documents in PostgreSQL
-
-### Chunking
-
-* Split document content into smaller chunks
-* Store chunks in PostgreSQL
-* Preserve chunk index and source document
-
-### Retrieval
-
-* Keyword retrieval
-* Vector retrieval with Qdrant
-* Hybrid retrieval combining keyword and vector results
-
-### LLM Answering
-
-* Generate answers using retrieved context
-* Return answer sources
-* OpenAI integration
-* Mock LLM fallback when OpenAI is unavailable
-
-### Redis Cache
-
-* Cache repeated RAG answers
-* Return cached responses for repeated questions
-* Cache failures do not break the API
-
-### Authentication
-
-* API key protection using `X-API-Key`
-* Protected customer, document, and RAG endpoints
-* Clean error response for missing or invalid API keys
-
-### Error Handling
-
-* Validates search mode
-* Handles OpenAI failures safely
-* Handles Redis failures safely
-* Handles missing vector data safely
-* Handles invalid file uploads safely
-
----
-
-## Docker Services
-
-The project runs with Docker Compose and includes:
-
-```text
-smart-rag-api        FastAPI backend
-smart-rag-postgres   PostgreSQL database
-smart-rag-redis      Redis cache
-smart-rag-qdrant     Qdrant vector database
+```bash
+git clone <your-repository-url>
+cd smart-rag-platform
 ```
 
 ---
 
-## Environment Variables
+## Backend Setup
 
-Create a `.env` file in the root folder:
+The backend runs through Docker Compose.
 
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-API_KEY=dev-smart-rag-key
-```
+From the project root:
 
-The API container uses:
-
-```env
-DATABASE_URL=postgresql://rag_user:rag_password@postgres:5432/smart_rag_db
-REDIS_URL=redis://redis:6379/0
-QDRANT_URL=http://qdrant:6333
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-4o-mini
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-USE_OPENAI_LLM=true
-USE_OPENAI_EMBEDDINGS=true
-API_KEY=dev-smart-rag-key
-```
-
-Use `.env.example` as a safe template for GitHub.
-
-Do not commit your real `.env` file.
-
----
-
-## Authentication
-
-Most API endpoints are protected with an API key.
-
-Required header:
-
-```text
-X-API-Key: dev-smart-rag-key
-```
-
-Example request:
-
-```powershell
-curl.exe -X GET "http://127.0.0.1:8000/customers" -H "X-API-Key: dev-smart-rag-key"
-```
-
-Without the API key, protected endpoints return:
-
-```json
-{
-  "detail": "Invalid or missing API key."
-}
-```
-
-The API key is configured through the `.env` file:
-
-```env
-API_KEY=dev-smart-rag-key
-```
-
----
-
-## Run the Project
-
-From the root folder:
-
-```powershell
+```bash
 docker compose up --build
 ```
 
-Open Swagger UI:
+Backend health check:
+
+```text
+http://127.0.0.1:8000/health
+```
+
+Expected response:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+API documentation:
 
 ```text
 http://127.0.0.1:8000/docs
@@ -250,349 +236,260 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## Health Checks
+## Frontend Setup
 
-Health endpoints are available for checking the backend and infrastructure services.
+Open a new terminal and run:
 
-### API Health
-
-```text
-GET /health
+```bash
+cd frontend
+npm install
+npm run dev -- --force
 ```
 
-### PostgreSQL Health
+Frontend URL:
 
 ```text
-GET /db/health
-```
-
-### Redis Health
-
-```text
-GET /cache/health
-```
-
-### LLM Health
-
-```text
-GET /llm/health
-```
-
-### Embeddings Health
-
-```text
-GET /embeddings/health
-```
-
-### Qdrant Health
-
-```text
-GET /vector/health
+http://localhost:5173/
 ```
 
 ---
 
-## Main API Endpoints
+## Frontend Production Build
 
-### Customers
+To verify the frontend production build:
 
-```text
-POST /customers
-GET /customers
+```bash
+cd frontend
+npm run build
 ```
 
-### Documents
+Expected successful output:
 
 ```text
-POST /customers/{customer_id}/documents
-POST /customers/{customer_id}/documents/upload
-GET /customers/{customer_id}/documents
-```
-
-The upload endpoint supports `.txt` files.
-
-### Chunks
-
-```text
-POST /documents/{document_id}/chunks
-GET /documents/{document_id}/chunks
-```
-
-### Vectors
-
-```text
-POST /documents/{document_id}/vectors
-```
-
-### Search
-
-```text
-POST /rag/search
-POST /rag/vector-search
-```
-
-### Answer
-
-```text
-POST /rag/answer
+vite building client environment for production...
+built successfully
 ```
 
 ---
 
-## Example Test Flow
+## Environment Variables
 
-### 1. Create Customer
+### Root `.env.example`
 
-Endpoint:
+Create a `.env` file based on `.env.example`.
+
+```env
+# Backend
+DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres:5432/smart_rag
+REDIS_URL=redis://redis:6379/0
+QDRANT_URL=http://qdrant:6333
+JWT_SECRET_KEY=change-this-secret-in-production
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# OpenAI
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
+
+# Frontend local development
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+### Frontend `.env.example`
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+Do not commit real secrets or API keys.
+
+---
+
+## Main API Flow
+
+### Authentication
+
+1. Register user
+2. Login user
+3. Store JWT access token
+4. Use token for protected requests
+
+### Customer Workflow
+
+1. Create a customer
+2. Select customer in the dashboard
+3. Upload a `.txt` knowledge document
+
+### RAG Workflow
+
+1. Upload document
+2. Create document chunks
+3. Generate embeddings
+4. Store vectors in Qdrant
+5. Ask a question
+6. Retrieve relevant chunks
+7. Generate an AI answer
+8. Show answer with optional sources
+
+---
+
+## Example Test Question
+
+Using the included Mohamad profile test document, ask:
 
 ```text
-POST /customers
+What is the main goal of Mohamad?
 ```
 
-Header:
+Expected answer:
 
 ```text
-X-API-Key: dev-smart-rag-key
-```
+Mohamad's main goal is to demonstrate that he can build and ship a complete AI software product, not just a small demo.
 
-Body:
-
-```json
-{
-  "name": "Delta Corp",
-  "description": "Customer for RAG testing"
-}
-```
-
-### 2. Create Document Manually
-
-Endpoint:
-
-```text
-POST /customers/{customer_id}/documents
-```
-
-Header:
-
-```text
-X-API-Key: dev-smart-rag-key
-```
-
-Body:
-
-```json
-{
-  "file_name": "renewal_notes.txt",
-  "content": "Delta Corp has a contract renewal coming soon. The customer has reported several support tickets, slow response times, and onboarding documentation issues. The account manager should contact the customer before renewal, review support tickets, and prepare a clear success plan."
-}
-```
-
-### 3. Create Chunks
-
-Endpoint:
-
-```text
-POST /documents/{document_id}/chunks
-```
-
-Header:
-
-```text
-X-API-Key: dev-smart-rag-key
-```
-
-### 4. Store Vectors
-
-Endpoint:
-
-```text
-POST /documents/{document_id}/vectors
-```
-
-Header:
-
-```text
-X-API-Key: dev-smart-rag-key
-```
-
-### 5. Ask RAG Answer
-
-Endpoint:
-
-```text
-POST /rag/answer
-```
-
-Header:
-
-```text
-X-API-Key: dev-smart-rag-key
-```
-
-Body:
-
-```json
-{
-  "document_id": "your-document-id",
-  "question": "What should the account manager do before the renewal meeting?",
-  "search_mode": "hybrid"
-}
-```
-
-Example response:
-
-```json
-{
-  "question": "What should the account manager do before the renewal meeting?",
-  "answer": "The account manager should contact the customer before renewal, review support tickets, and prepare a clear success plan.",
-  "sources": [
-    {
-      "chunk_id": "example-chunk-id",
-      "chunk_index": 1,
-      "score": 7.01,
-      "content": "account manager should contact the customer before renewal...",
-      "source_type": "hybrid"
-    }
-  ]
-}
+Recommendation: finalize the frontend design, take professional screenshots, update the README, dockerize the frontend, prepare production environment variables, and deploy the project on AWS.
 ```
 
 ---
 
-## File Upload
+## OpenAI Fallback Behavior
 
-The API supports uploading `.txt` files and turning them into documents.
+If the OpenAI API key is not configured or the API request fails, the backend uses a local fallback answer generator.
 
-Endpoint:
+This keeps the product usable during local development and portfolio demonstrations.
 
-```text
-POST /customers/{customer_id}/documents/upload
-```
+The fallback system is especially useful for:
 
-Required header:
+* Testing the full RAG flow
+* Avoiding broken demos when OpenAI is unavailable
+* Showing a working AI answer interface without requiring a live API key
 
-```text
-X-API-Key: dev-smart-rag-key
-```
+---
 
-Example curl request:
+## Docker Services
 
-```powershell
-curl.exe -X POST "http://127.0.0.1:8000/customers/{customer_id}/documents/upload" -H "X-API-Key: dev-smart-rag-key" -F "file=@test-files/renewal-upload-test.txt;type=text/plain"
-```
-
-After uploading a file, the normal RAG flow can be used:
+The local Docker Compose setup includes:
 
 ```text
-POST /documents/{document_id}/chunks
-POST /documents/{document_id}/vectors
-POST /rag/answer
+postgres
+redis
+qdrant
+backend api
+```
+
+The frontend also includes a production Dockerfile using:
+
+```text
+Node.js build stage
+Nginx serving stage
 ```
 
 ---
 
-## Search Modes
+## Frontend Dockerfile
 
-`POST /rag/answer` supports three search modes:
+The frontend Dockerfile builds the React application and serves the static production files with Nginx.
 
-```text
-keyword
-vector
-hybrid
-```
+```dockerfile
+FROM node:20-alpine AS build
 
-Example:
+WORKDIR /app
 
-```json
-{
-  "document_id": "your-document-id",
-  "question": "What are the customer risks?",
-  "search_mode": "hybrid"
-}
-```
+COPY package*.json ./
+RUN npm install
 
-Invalid values return a clean error:
+COPY . .
+RUN npm run build
 
-```json
-{
-  "detail": "Invalid search_mode. Supported values are: keyword, vector, hybrid."
-}
+FROM nginx:alpine
+
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ---
 
-## OpenAI Fallback
+## Production Deployment Plan
 
-If OpenAI is unavailable or the account has no quota, the system uses a local mock fallback:
+Recommended first production deployment:
 
 ```text
-[OPENAI FALLBACK - MOCK USED] OpenAI is currently unavailable, so a local fallback answer was generated.
+AWS EC2 + Docker Compose
 ```
 
-This prevents the API from crashing.
+Production services:
+
+* Frontend container
+* Backend container
+* PostgreSQL container
+* Redis container
+* Qdrant container
+
+Future improvements:
+
+* Nginx reverse proxy
+* HTTPS with Certbot
+* Domain name
+* Managed PostgreSQL with Amazon RDS
+* Managed Redis with ElastiCache
+* Persistent Qdrant storage
+* CI/CD with GitHub Actions
+* CloudWatch logging
+* S3 document storage
 
 ---
 
-## Screenshots
+## AWS Deployment Preparation
 
-### GitHub Repository
+Before deploying to AWS:
 
-![GitHub Repository](screenshots/github-repo.png)
-
-### Swagger API Endpoints
-
-![Swagger Endpoints](screenshots/swagger-endpoints.png)
-
-### Hybrid RAG Answer
-
-![Hybrid RAG Answer](screenshots/rag-answer.png)
-
-### Qdrant Vector Health
-
-![Vector Health](screenshots/vector-health.png)
+* Verify `docker compose up --build` works locally
+* Confirm backend health endpoint works
+* Confirm frontend production build works
+* Confirm login works
+* Confirm customer creation works
+* Confirm upload and indexing works
+* Confirm Ask AI works
+* Confirm sources are hidden by default
+* Confirm screenshots are updated
+* Confirm README is complete
+* Confirm real secrets are not committed
 
 ---
 
 ## Current Status
 
-Implemented:
+Completed:
 
-* FastAPI backend
-* PostgreSQL persistence
-* SQLAlchemy models
-* Redis answer cache
-* Qdrant vector database
-* OpenAI LLM integration
-* Embeddings service
-* Mock fallback for LLM and embeddings
-* Keyword retrieval
-* Vector retrieval
-* Hybrid retrieval
-* Answer sources
-* Docker Compose stack
-* Text file upload support
-* API key authentication
-* Production-style error handling
-* Basic backend logging
+* Backend API
+* Authentication
+* Customer management
+* Document upload
+* Chunking
+* Vector indexing
+* Ask AI flow
+* Source tracking
+* Local fallback answers
+* Professional frontend dashboard
+* Frontend production build
+* Frontend Dockerfile
+* Screenshots folder
 
----
+Next steps:
 
-## Future Improvements
-
-Planned improvements:
-
-* User registration and login
-* JWT authentication
-* PDF parsing
-* Background workers for indexing
-* LangGraph orchestration
-* CI/CD pipeline
-* AWS ECS deployment
-* Monitoring and logging dashboard
-* Frontend dashboard
+* Finalize README
+* Add production Docker Compose configuration
+* Prepare AWS EC2 deployment
+* Add Nginx reverse proxy
+* Add HTTPS
+* Deploy live version
 
 ---
 
 ## Author
 
-Built as a portfolio project for AI backend engineering, RAG systems, and production-ready API architecture.
+Built by Mohamad Ali Assaad as a production-style AI portfolio project.
+
+This project demonstrates full-stack engineering, AI integration, backend architecture, frontend product design, Docker infrastructure, and cloud deployment readiness.
