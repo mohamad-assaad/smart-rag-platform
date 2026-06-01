@@ -3,18 +3,13 @@ services:
     image: postgres:16
     container_name: smart-rag-postgres
     environment:
-      POSTGRES_USER: rag_user
-      POSTGRES_PASSWORD: rag_password
-      POSTGRES_DB: smart_rag_db
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: smart_rag
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rag_user -d smart_rag_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:7
@@ -25,37 +20,39 @@ services:
   qdrant:
     image: qdrant/qdrant:latest
     container_name: smart-rag-qdrant
-    ports:
-      - "6333:6333"
-      - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
+    ports:
+      - "6333:6333"
 
   api:
     build:
       context: ./backend
-      dockerfile: Dockerfile
     container_name: smart-rag-api
-    ports:
-      - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://rag_user:rag_password@postgres:5432/smart_rag_db
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/smart_rag
       REDIS_URL: redis://redis:6379/0
       QDRANT_URL: http://qdrant:6333
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      API_KEY: ${API_KEY}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      OPENAI_MODEL: gpt-4o-mini
-      OPENAI_EMBEDDING_MODEL: text-embedding-3-small
-      USE_OPENAI_LLM: "true"
-      USE_OPENAI_EMBEDDINGS: "true"
+
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-this-secret-in-production}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+
+      DYNAMICS_TENANT_ID: ${DYNAMICS_TENANT_ID:-}
+      DYNAMICS_CLIENT_ID: ${DYNAMICS_CLIENT_ID:-}
+      DYNAMICS_CLIENT_SECRET: ${DYNAMICS_CLIENT_SECRET:-}
+      DYNAMICS_RESOURCE_URL: ${DYNAMICS_RESOURCE_URL:-https://org62f5e36c.crm4.dynamics.com}
+      DYNAMICS_API_VERSION: ${DYNAMICS_API_VERSION:-v9.2}
+      DYNAMICS_CUSTOMER_TABLE: ${DYNAMICS_CUSTOMER_TABLE:-new_customerprofile}
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      qdrant:
-        condition: service_started
+      - postgres
+      - redis
+      - qdrant
+    ports:
+      - "8000:8000"
 
 volumes:
   postgres_data:

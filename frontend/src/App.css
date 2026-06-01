@@ -34,6 +34,21 @@ button {
   cursor: pointer;
 }
 
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: #111111;
+}
+
 /* AUTH PAGE */
 
 .auth-page {
@@ -65,6 +80,15 @@ button {
   font-size: 0.9rem;
 }
 
+.eyebrow {
+  margin: 0 0 8px;
+  color: #666666;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
 .auth-hero .eyebrow {
   margin-top: 30px;
 }
@@ -82,6 +106,7 @@ button {
   max-width: 620px;
   color: #555555;
   font-size: 1rem;
+  line-height: 1.6;
 }
 
 .auth-proof-grid {
@@ -130,36 +155,13 @@ button {
   margin-bottom: 20px;
 }
 
-.eyebrow {
-  margin: 0 0 8px;
-  color: #666666;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-
-h1,
-h2,
-h3,
-p {
-  margin-top: 0;
-}
-
-h1,
-h2,
-h3 {
-  color: #111111;
-}
-
 .auth-card h2 {
   margin-bottom: 8px;
   font-size: 1.55rem;
   font-weight: 650;
 }
 
-.auth-card p,
-.subtitle {
+.auth-card p {
   color: #555555;
   line-height: 1.55;
 }
@@ -502,7 +504,6 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  cursor: pointer;
 }
 
 .search-suggestions button:hover {
@@ -757,12 +758,6 @@ textarea:focus {
   color: #1f1f1f;
 }
 
-.upload-field select:focus {
-  border-color: #111111;
-  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.06);
-  outline: none;
-}
-
 .upload-field input[type="file"] {
   height: 46px;
   padding: 0;
@@ -797,12 +792,6 @@ textarea:focus {
   color: #ffffff;
 }
 
-.upload-field input[type="file"]:focus {
-  border-color: #111111;
-  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.06);
-  outline: none;
-}
-
 .upload-action {
   display: flex;
   align-items: end;
@@ -821,8 +810,168 @@ textarea:focus {
   box-shadow: 0 10px 20px rgba(17, 17, 17, 0.12);
 }
 
-.upload-action .primary-button:hover {
-  background: #000000;
+/* DYNAMICS IMPORT */
+
+.dynamics-card {
+  border: 1px solid #e3e3e3;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.dynamics-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px;
+  background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.dynamics-card-header h3 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+  font-weight: 650;
+}
+
+.dynamics-card-header p {
+  margin: 0;
+  color: #555555;
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+.dynamics-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid #eeeeee;
+}
+
+.dynamics-meta-grid article {
+  padding: 16px 20px;
+  border-right: 1px solid #eeeeee;
+  background: #ffffff;
+}
+
+.dynamics-meta-grid article:last-child {
+  border-right: 0;
+}
+
+.dynamics-meta-grid span {
+  display: block;
+  margin-bottom: 6px;
+  color: #666666;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.dynamics-meta-grid strong {
+  color: #111111;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.dynamics-fields-section {
+  padding: 20px;
+}
+
+.dynamics-fields-section h4 {
+  margin: 0 0 14px;
+  color: #111111;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.dynamics-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dynamics-fields-grid span {
+  padding: 10px 12px;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  background: #fafafa;
+  color: #333333;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+/* QUICK QUESTIONS */
+
+.quick-questions-panel {
+  border: 1px solid #e3e3e3;
+  border-radius: 14px;
+  background: #ffffff;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.quick-questions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+  border-bottom: 1px solid #eeeeee;
+}
+
+.quick-questions-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.quick-questions-header span {
+  color: #666666;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.quick-questions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.quick-questions-grid button {
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  background: #fafafa;
+  padding: 12px 14px;
+  text-align: left;
+  display: grid;
+  gap: 5px;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.quick-questions-grid button:hover {
+  background: #ffffff;
+  border-color: #111111;
+  transform: translateY(-1px);
+}
+
+.quick-questions-grid button span {
+  color: #777777;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quick-questions-grid button strong {
+  color: #111111;
+  font-size: 0.9rem;
+  font-weight: 650;
 }
 
 /* TABLE */
@@ -1014,6 +1163,28 @@ textarea:focus {
   .upload-action .primary-button {
     width: 100%;
   }
+
+  .dynamics-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dynamics-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dynamics-meta-grid article {
+    border-right: 0;
+    border-bottom: 1px solid #eeeeee;
+  }
+
+  .dynamics-meta-grid article:last-child {
+    border-bottom: 0;
+  }
+
+  .dynamics-fields-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 800px) {
@@ -1064,6 +1235,19 @@ textarea:focus {
   }
 
   .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dynamics-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-questions-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .quick-questions-grid {
     grid-template-columns: 1fr;
   }
 }

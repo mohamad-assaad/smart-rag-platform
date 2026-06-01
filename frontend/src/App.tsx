@@ -41,14 +41,90 @@ type AnswerResponse = {
   sources: AnswerSource[];
 };
 
+type DynamicsImportResponse = {
+  message: string;
+  customer_id: string;
+  document_id: string;
+  file_name: string;
+  record_count: number;
+  entity_set_name: string;
+  table_logical_name: string;
+};
+
 type AuthMode = "login" | "register";
-type ActiveSection = "overview" | "customers" | "documents" | "upload" | "ask";
+
+type ActiveSection =
+  | "overview"
+  | "customers"
+  | "documents"
+  | "upload"
+  | "dynamics"
+  | "ask";
 
 type SearchOption = {
   label: string;
   description: string;
   section: ActiveSection;
 };
+
+type QuickQuestion = {
+  label: string;
+  question: string;
+  category: string;
+};
+
+const QUICK_QUESTIONS: QuickQuestion[] = [
+  {
+    label: "Customers from Qatar",
+    question: "Which customers are from Qatar?",
+    category: "Country",
+  },
+  {
+    label: "Customer from Lebanon",
+    question: "Which customer is from Lebanon?",
+    category: "Country",
+  },
+  {
+    label: "Blocked card complaints",
+    question: "Who has a blocked card complaint?",
+    category: "Complaint",
+  },
+  {
+    label: "Recent complaints",
+    question: "What are the recent complaints from customers?",
+    category: "Complaint",
+  },
+  {
+    label: "SMS consent",
+    question: "Which customers gave SMS consent?",
+    category: "Consent",
+  },
+  {
+    label: "Email consent",
+    question: "Which customers gave email consent?",
+    category: "Consent",
+  },
+  {
+    label: "Preferred channels",
+    question: "What are the preferred contact channels for customers?",
+    category: "Channel",
+  },
+  {
+    label: "Recent interactions",
+    question: "Which customers had the most recent interaction?",
+    category: "Activity",
+  },
+  {
+    label: "Summarize profiles",
+    question: "Summarize all Dynamics customer profiles.",
+    category: "Summary",
+  },
+  {
+    label: "Follow-up actions",
+    question: "What follow-up actions do you recommend for these customers?",
+    category: "Recommendation",
+  },
+];
 
 function App() {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
@@ -73,9 +149,7 @@ function App() {
   const [uploadedDocuments, setUploadedDocuments] = useState<DocumentItem[]>([]);
 
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
-  const [question, setQuestion] = useState(
-    "What should the account manager do before renewal?"
-  );
+  const [question, setQuestion] = useState("Which customers are from Qatar?");
   const [answerResult, setAnswerResult] = useState<AnswerResponse | null>(null);
   const [showSources, setShowSources] = useState(false);
 
@@ -83,14 +157,19 @@ function App() {
   const [dashboardMessage, setDashboardMessage] = useState("");
   const [uploadMessage, setUploadMessage] = useState("");
   const [answerMessage, setAnswerMessage] = useState("");
+  const [dynamicsMessage, setDynamicsMessage] = useState(
+    "Dynamics 365 CRM connection is ready. Click Import from Dynamics to import customer profiles into Smart RAG."
+  );
 
   const [isLoading, setIsLoading] = useState(false);
   const [isCustomersLoading, setIsCustomersLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
+  const [isDynamicsImporting, setIsDynamicsImporting] = useState(false);
 
   const selectedDocument = useMemo(
-    () => uploadedDocuments.find((document) => document.id === selectedDocumentId),
+    () =>
+      uploadedDocuments.find((document) => document.id === selectedDocumentId),
     [uploadedDocuments, selectedDocumentId]
   );
 
@@ -130,6 +209,19 @@ function App() {
         description: "Upload and index a customer text file.",
         section: "upload",
         keywords: ["upload", "knowledge", "index", "file upload", "up"],
+      },
+      {
+        label: "Dynamics",
+        description: "Import customer profiles from Dynamics 365 CRM.",
+        section: "dynamics",
+        keywords: [
+          "dynamics",
+          "crm",
+          "dataverse",
+          "customer profiles",
+          "import dynamics",
+          "dy",
+        ],
       },
       {
         label: "Ask AI",
@@ -181,12 +273,16 @@ function App() {
     };
   }
 
-  function handleSearchSelect(option: SearchOption) {
-    setActiveSection(option.section);
-    setSearchQuery("");
+  function clearPageMessages() {
     setDashboardMessage("");
     setUploadMessage("");
     setAnswerMessage("");
+  }
+
+  function handleSearchSelect(option: SearchOption) {
+    setActiveSection(option.section);
+    setSearchQuery("");
+    clearPageMessages();
   }
 
   function handleGlobalSearch() {
@@ -482,6 +578,110 @@ function App() {
     }
   }
 
+  async function handleDynamicsImport() {
+    if (!token) {
+      setDynamicsMessage("You must be logged in.");
+      return;
+    }
+
+    setIsDynamicsImporting(true);
+    setDynamicsMessage("Importing customer profiles from Dynamics 365 CRM...");
+    setAnswerResult(null);
+    setShowSources(false);
+
+    try {
+      const importResponse = await fetch(
+        `${API_BASE_URL}/integrations/dynamics/import-customer-profiles?limit=25`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(token),
+        }
+      );
+
+      const importData = await importResponse.json();
+
+      if (!importResponse.ok) {
+        setDynamicsMessage(
+          importData.detail || "Could not import Dynamics customer profiles."
+        );
+        return;
+      }
+
+      const dynamicsImport = importData as DynamicsImportResponse;
+
+      setDynamicsMessage(
+        `Imported ${dynamicsImport.record_count} Dynamics customer profiles. Creating chunks...`
+      );
+
+      const chunksResponse = await fetch(
+        `${API_BASE_URL}/documents/${dynamicsImport.document_id}/chunks`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(token),
+        }
+      );
+
+      if (!chunksResponse.ok) {
+        const errorData = await chunksResponse.json();
+        setDynamicsMessage(
+          errorData.detail || "Dynamics data imported, but chunking failed."
+        );
+        return;
+      }
+
+      setDynamicsMessage("Chunks created. Storing vectors...");
+
+      const vectorsResponse = await fetch(
+        `${API_BASE_URL}/documents/${dynamicsImport.document_id}/vectors`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(token),
+        }
+      );
+
+      if (!vectorsResponse.ok) {
+        const errorData = await vectorsResponse.json();
+        setDynamicsMessage(
+          errorData.detail ||
+            "Dynamics data imported and chunked, but vector indexing failed."
+        );
+        return;
+      }
+
+      const importedDocument: DocumentItem = {
+        id: dynamicsImport.document_id,
+        customer_id: dynamicsImport.customer_id,
+        file_name: dynamicsImport.file_name,
+        content: "",
+        created_at: new Date().toISOString(),
+      };
+
+      setUploadedDocuments((currentDocuments) => {
+        const alreadyExists = currentDocuments.some(
+          (document) => document.id === importedDocument.id
+        );
+
+        if (alreadyExists) {
+          return currentDocuments;
+        }
+
+        return [importedDocument, ...currentDocuments];
+      });
+
+      setSelectedDocumentId(dynamicsImport.document_id);
+      setQuestion("Which customers are from Qatar?");
+      setAnswerMessage("");
+      setDynamicsMessage(
+        `Dynamics import complete. ${dynamicsImport.record_count} customer profiles are indexed and ready for Ask AI.`
+      );
+      setActiveSection("ask");
+    } catch {
+      setDynamicsMessage("Could not connect to the backend.");
+    } finally {
+      setIsDynamicsImporting(false);
+    }
+  }
+
   async function handleAskAi(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -491,7 +691,7 @@ function App() {
     }
 
     if (!selectedDocumentId) {
-      setAnswerMessage("Please select an uploaded document.");
+      setAnswerMessage("Please select an uploaded or imported document.");
       return;
     }
 
@@ -552,8 +752,8 @@ function App() {
           <div className="section-heading">
             <h2>Overview</h2>
             <p>
-              Monitor customers, indexed documents, and AI answer activity from
-              one admin workspace.
+              Monitor customers, indexed documents, Dynamics CRM imports, and AI
+              answer activity from one admin workspace.
             </p>
           </div>
 
@@ -569,7 +769,7 @@ function App() {
             <article>
               <span>Indexed this session</span>
               <strong>{uploadedDocuments.length}</strong>
-              <p>Documents uploaded and prepared for retrieval.</p>
+              <p>Documents uploaded or imported and prepared for retrieval.</p>
             </article>
 
             <article>
@@ -583,8 +783,9 @@ function App() {
             <div className="empty-icon">✦</div>
             <h2>Create your customer intelligence workflow.</h2>
             <p>
-              Add a customer, upload a knowledge file, index the document, and
-              ask AI questions grounded in your content.
+              Add a customer, upload a knowledge file, import CRM data from
+              Dynamics, index the content, and ask AI questions grounded in your
+              data.
             </p>
             <div className="empty-actions">
               <button
@@ -593,6 +794,13 @@ function App() {
                 onClick={() => setActiveSection("upload")}
               >
                 Upload knowledge
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => setActiveSection("dynamics")}
+              >
+                Import Dynamics
               </button>
               <button
                 className="secondary-button"
@@ -686,7 +894,7 @@ function App() {
         <section className="admin-card">
           <div className="section-heading">
             <h2>Documents</h2>
-            <p>View documents uploaded during this browser session.</p>
+            <p>View documents uploaded or imported during this browser session.</p>
           </div>
 
           <div className="admin-table-wrap">
@@ -702,7 +910,9 @@ function App() {
               <tbody>
                 {uploadedDocuments.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>No uploaded documents this session.</td>
+                    <td colSpan={4}>
+                      No uploaded or imported documents this session.
+                    </td>
                   </tr>
                 ) : (
                   uploadedDocuments.map((document) => (
@@ -795,13 +1005,87 @@ function App() {
       );
     }
 
+    if (activeSection === "dynamics") {
+      return (
+        <section className="admin-card">
+          <div className="section-heading">
+            <h2>Dynamics 365 Import</h2>
+            <p>
+              Import Customer Profile records from Dynamics 365 CRM and prepare
+              them for RAG search and AI answers.
+            </p>
+          </div>
+
+          <div className="dynamics-card">
+            <div className="dynamics-card-header">
+              <div>
+                <p className="eyebrow">CRM Data Source</p>
+                <h3>Customer Profiles</h3>
+                <p>
+                  This integration reads customer profile records from Dataverse,
+                  converts CRM fields into searchable text, then indexes the
+                  content using the same RAG pipeline.
+                </p>
+              </div>
+
+              <button
+                className="primary-button"
+                type="button"
+                onClick={handleDynamicsImport}
+                disabled={isDynamicsImporting}
+              >
+                {isDynamicsImporting ? "Importing..." : "Import from Dynamics"}
+              </button>
+            </div>
+
+            <div className="dynamics-meta-grid">
+              <article>
+                <span>Environment</span>
+                <strong>org62f5e36c.crm4.dynamics.com</strong>
+              </article>
+
+              <article>
+                <span>Table logical name</span>
+                <strong>new_customerprofile</strong>
+              </article>
+
+              <article>
+                <span>Data type</span>
+                <strong>Customer Profile records</strong>
+              </article>
+            </div>
+
+            <div className="dynamics-fields-section">
+              <h4>Fields prepared for import</h4>
+
+              <div className="dynamics-fields-grid">
+                <span>new_customername</span>
+                <span>new_email</span>
+                <span>new_phone</span>
+                <span>new_country</span>
+                <span>new_customersegment</span>
+                <span>new_preferredchannel</span>
+                <span>new_emailconsent</span>
+                <span>new_smsconsent</span>
+                <span>new_lastinteractiondate</span>
+                <span>new_recentcomplaint</span>
+                <span>new_interestarea</span>
+              </div>
+            </div>
+          </div>
+
+          {dynamicsMessage && <p className="message-box">{dynamicsMessage}</p>}
+        </section>
+      );
+    }
+
     return (
       <section className="admin-card">
         <div className="section-heading">
           <h2>Ask AI</h2>
           <p>
-            Ask questions against indexed customer documents using hybrid
-            retrieval and source tracking.
+            Ask questions against indexed customer documents and imported
+            Dynamics CRM data using hybrid retrieval and source tracking.
           </p>
         </div>
 
@@ -810,7 +1094,7 @@ function App() {
             value={selectedDocumentId}
             onChange={(event) => setSelectedDocumentId(event.target.value)}
           >
-            <option value="">Select uploaded document</option>
+            <option value="">Select uploaded or imported document</option>
             {uploadedDocuments.map((document) => (
               <option value={document.id} key={document.id}>
                 {document.file_name}
@@ -827,9 +1111,32 @@ function App() {
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Ask a question about the uploaded document..."
+            placeholder="Ask a question about the uploaded or imported document..."
             rows={4}
           />
+
+          <div className="quick-questions-panel">
+            <div className="quick-questions-header">
+              <div>
+                <p className="eyebrow">Prompt suggestions</p>
+                <h3>Quick questions</h3>
+              </div>
+              <span>Built from Dynamics CRM fields</span>
+            </div>
+
+            <div className="quick-questions-grid">
+              {QUICK_QUESTIONS.map((prompt) => (
+                <button
+                  type="button"
+                  key={prompt.question}
+                  onClick={() => setQuestion(prompt.question)}
+                >
+                  <span>{prompt.category}</span>
+                  <strong>{prompt.label}</strong>
+                </button>
+              ))}
+            </div>
+          </div>
 
           <button
             className="primary-button"
@@ -898,8 +1205,8 @@ function App() {
           <p className="eyebrow">Smart RAG Platform</p>
           <h1>AI customer intelligence for support and renewal teams.</h1>
           <p className="subtitle">
-            Upload customer notes, index them with vector search, and ask AI
-            questions with trusted source tracking.
+            Upload customer notes, import CRM data, index them with vector
+            search, and ask AI questions with trusted source tracking.
           </p>
 
           <div className="auth-proof-grid">
@@ -912,8 +1219,8 @@ function App() {
               <span>JWT authentication</span>
             </div>
             <div>
-              <strong>Production Stack</strong>
-              <span>FastAPI, Qdrant, Redis</span>
+              <strong>CRM Ready</strong>
+              <span>Dynamics 365 integration</span>
             </div>
           </div>
         </section>
@@ -923,8 +1230,8 @@ function App() {
             <p className="eyebrow">Account access</p>
             <h2>{authMode === "login" ? "Welcome back" : "Create account"}</h2>
             <p>
-              Sign in to manage customers, upload documents, and ask AI
-              questions.
+              Sign in to manage customers, upload documents, import CRM data, and
+              ask AI questions.
             </p>
           </div>
 
@@ -1032,6 +1339,14 @@ function App() {
         </button>
 
         <button
+          className={activeSection === "dynamics" ? "active" : ""}
+          onClick={() => setActiveSection("dynamics")}
+          title="Dynamics"
+        >
+          ↧
+        </button>
+
+        <button
           className={activeSection === "ask" ? "active" : ""}
           onClick={() => setActiveSection("ask")}
           title="Ask AI"
@@ -1078,6 +1393,13 @@ function App() {
           </button>
 
           <button
+            className={activeSection === "dynamics" ? "active" : ""}
+            onClick={() => setActiveSection("dynamics")}
+          >
+            Dynamics
+          </button>
+
+          <button
             className={activeSection === "ask" ? "active" : ""}
             onClick={() => setActiveSection("ask")}
           >
@@ -1112,7 +1434,7 @@ function App() {
                   setSearchQuery("");
                 }
               }}
-              placeholder="Search pages, customers, or documents"
+              placeholder="Search pages, customers, documents, or Dynamics"
             />
 
             {searchOptions.length > 0 && (
@@ -1141,6 +1463,10 @@ function App() {
             ⇧ Upload
           </button>
 
+          <button type="button" onClick={() => setActiveSection("dynamics")}>
+            ↧ Import Dynamics
+          </button>
+
           <button type="button" onClick={() => setActiveSection("ask")}>
             □ Ask AI
           </button>
@@ -1156,6 +1482,7 @@ function App() {
             {activeSection === "customers" && "Customers"}
             {activeSection === "documents" && "Documents"}
             {activeSection === "upload" && "Upload knowledge"}
+            {activeSection === "dynamics" && "Dynamics"}
             {activeSection === "ask" && "Ask AI"}
           </h1>
 
@@ -1165,11 +1492,13 @@ function App() {
             {activeSection === "customers" &&
               "Create and manage customer records."}
             {activeSection === "documents" &&
-              "Review uploaded documents available in this session."}
+              "Review uploaded and imported documents available in this session."}
             {activeSection === "upload" &&
               "Upload text files and index them for retrieval."}
+            {activeSection === "dynamics" &&
+              "Import customer profiles from Dynamics 365 CRM and prepare them for RAG."}
             {activeSection === "ask" &&
-              "Generate grounded answers from indexed documents."}
+              "Generate grounded answers from indexed documents and CRM data."}
           </p>
         </section>
 

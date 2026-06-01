@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Any
 
 try:
@@ -42,6 +43,217 @@ def _normalize_context(context: Any) -> str:
     return " ".join(str(context).split())
 
 
+def _extract_customer_blocks(clean_context: str) -> list[dict[str, str]]:
+    """
+    Extracts customer profile blocks from Dynamics CRM RAG text.
+
+    Supports text like:
+    Customer Profile 1 Customer Name: Ahmed Ali Email: ... Country: Qatar ...
+    Customer Profile 2 Customer Name: Omar Hassan ...
+    """
+    if not clean_context:
+        return []
+
+    normalized = clean_context.replace(" --- ", "\n---\n")
+
+    pattern = re.compile(
+        r"Customer Profile\s+\d+\s+(.*?)(?=Customer Profile\s+\d+|$)",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    blocks = pattern.findall(normalized)
+
+    customers: list[dict[str, str]] = []
+
+    for block in blocks:
+        customer = {
+            "name": _extract_field(block, "Customer Name"),
+            "email": _extract_field(block, "Email"),
+            "phone": _extract_field(block, "Phone"),
+            "country": _extract_field(block, "Country"),
+            "segment": _extract_field(block, "Customer Segment"),
+            "preferred_channel": _extract_field(block, "Preferred Channel"),
+            "email_consent": _extract_field(block, "Email Consent"),
+            "sms_consent": _extract_field(block, "SMS Consent"),
+            "last_interaction_date": _extract_field(block, "Last Interaction Date"),
+            "recent_complaint": _extract_field(block, "Recent Complaint"),
+            "interest_area": _extract_field(block, "Interest Area"),
+        }
+
+        if customer["name"]:
+            customers.append(customer)
+
+    return customers
+
+
+def _extract_field(text: str, field_name: str) -> str:
+    """
+    Extracts a field value from flattened RAG text.
+    """
+    known_fields = [
+        "Customer Name",
+        "Email",
+        "Phone",
+        "Country",
+        "Customer Segment",
+        "Preferred Channel",
+        "Email Consent",
+        "SMS Consent",
+        "Last Interaction Date",
+        "Recent Complaint",
+        "Interest Area",
+    ]
+
+    next_fields = [field for field in known_fields if field != field_name]
+    next_field_pattern = "|".join(re.escape(field) for field in next_fields)
+
+    pattern = re.compile(
+        rf"{re.escape(field_name)}:\s*(.*?)(?=\s+(?:{next_field_pattern}):|$)",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    match = pattern.search(text)
+
+    if not match:
+        return ""
+
+    value = match.group(1).strip()
+    value = value.replace("\n", " ").strip()
+    value = re.sub(r"\s+", " ", value)
+
+    if value.lower() in ["not provided", "none", "null"]:
+        return ""
+
+    return value
+
+
+def _format_customer_list(customers: list[dict[str, str]]) -> str:
+    if not customers:
+        return "No matching customers were found in the retrieved Dynamics data."
+
+    lines = []
+
+    for customer in customers:
+        name = customer.get("name") or "Unknown customer"
+        country = customer.get("country") or "Unknown country"
+        complaint = customer.get("recent_complaint") or "No complaint provided"
+        email = customer.get("email") or "No email provided"
+        phone = customer.get("phone") or "No phone provided"
+
+        lines.append(
+            f"- {name} — Country: {country}; Email: {email}; Phone: {phone}; Recent complaint: {complaint}"
+        )
+
+    return "\n".join(lines)
+
+
+def _answer_dynamics_question(question: str, clean_context: str) -> str | None:
+    question_lower = question.lower()
+    customers = _extract_customer_blocks(clean_context)
+
+    if not customers:
+        return None
+
+    if "qatar" in question_lower:
+        matching = [
+            customer
+            for customer in customers
+            if customer.get("country", "").lower() == "qatar"
+        ]
+
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            "The customers from Qatar are:\n"
+            f"{_format_customer_list(matching)}\n\n"
+            "Recommendation: follow up with these Qatar-based customers based on their recent complaints and preferred contact channels."
+        )
+
+    if "lebanon" in question_lower:
+        matching = [
+            customer
+            for customer in customers
+            if customer.get("country", "").lower() == "lebanon"
+        ]
+
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            "The customers from Lebanon are:\n"
+            f"{_format_customer_list(matching)}"
+        )
+
+    if "blocked card" in question_lower or "card blocked" in question_lower:
+        matching = [
+            customer
+            for customer in customers
+            if "blocked card" in customer.get("recent_complaint", "").lower()
+            or "card blocked" in customer.get("recent_complaint", "").lower()
+        ]
+
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            "The customers with a blocked card related complaint are:\n"
+            f"{_format_customer_list(matching)}\n\n"
+            "Recommendation: prioritize these customers because card access issues can be urgent and affect customer satisfaction."
+        )
+
+    if "complaint" in question_lower or "complaints" in question_lower:
+        customers_with_complaints = [
+            customer
+            for customer in customers
+            if customer.get("recent_complaint")
+        ]
+
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            "The recent customer complaints are:\n"
+            f"{_format_customer_list(customers_with_complaints)}\n\n"
+            "Recommendation: review these complaints and assign follow-up actions based on urgency."
+        )
+
+    if "sms consent" in question_lower or "gave sms" in question_lower:
+        matching = [
+            customer
+            for customer in customers
+            if customer.get("sms_consent", "").lower() == "true"
+        ]
+
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            "The customers who gave SMS consent are:\n"
+            f"{_format_customer_list(matching)}"
+        )
+
+    if "email consent" in question_lower:
+        matching = [
+            customer
+            for customer in customers
+            if customer.get("email_consent", "").lower() == "true"
+        ]
+
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            "The customers who gave email consent are:\n"
+            f"{_format_customer_list(matching)}"
+        )
+
+    if "summarize" in question_lower or "summary" in question_lower:
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            f"The Dynamics CRM data contains {len(customers)} customer profiles:\n"
+            f"{_format_customer_list(customers)}\n\n"
+            "Recommendation: use this imported CRM data to identify customer location, contact details, consent preferences, and recent complaints."
+        )
+
+    if "customer" in question_lower or "customers" in question_lower:
+        return (
+            "[OPENAI FALLBACK - MOCK USED] "
+            "Here are the customer profiles found in the retrieved Dynamics data:\n"
+            f"{_format_customer_list(customers)}"
+        )
+
+    return None
+
+
 def generate_fallback_answer(question: str, context: Any) -> str:
     """
     Local fallback answer generator used when OpenAI is unavailable.
@@ -52,11 +264,6 @@ def generate_fallback_answer(question: str, context: Any) -> str:
     clean_context = _normalize_context(context)
     question_lower = question.lower()
 
-    is_mohamad_question = any(
-        name in question_lower
-        for name in ["mohamad", "mhmad", "mohammed", "muhammad", "mohamad ali"]
-    )
-
     if not clean_context:
         return (
             "[OPENAI FALLBACK - MOCK USED] "
@@ -64,7 +271,31 @@ def generate_fallback_answer(question: str, context: Any) -> str:
             "Recommendation: upload and index a more relevant document, then ask the question again."
         )
 
-    if is_mohamad_question and "goal" in question_lower:
+    dynamics_answer = _answer_dynamics_question(question, clean_context)
+
+    if dynamics_answer:
+        return dynamics_answer
+
+    is_mohamad_question = any(
+        name in question_lower
+        for name in ["mohamad", "mhmad", "mohammed", "muhammad", "mohamad ali"]
+    )
+
+    is_goal_question = any(
+        word in question_lower
+        for word in ["goal", "main goal", "purpose", "objective", "aim"]
+    )
+
+    context_has_mohamad_goal = (
+        "mohamad" in clean_context.lower()
+        and (
+            "main goal" in clean_context.lower()
+            or "complete ai software product" in clean_context.lower()
+            or "not just a small demo" in clean_context.lower()
+        )
+    )
+
+    if is_goal_question and (is_mohamad_question or context_has_mohamad_goal):
         return (
             "[OPENAI FALLBACK - MOCK USED] "
             "Mohamad's main goal is to demonstrate that he can build and ship a complete AI software product, "
