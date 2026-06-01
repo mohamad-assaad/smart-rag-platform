@@ -1,0 +1,21 @@
+Mohamad Ali Assaad is building a full-stack Smart RAG Platform as a production-style portfolio project.
+
+The Smart RAG Platform is designed to help companies upload customer documents, organize them by customer, generate document chunks, store vector embeddings, and ask AI-powered questions with source tracking.
+
+Mohamad is focusing on backend engineering, AI integration, cloud deployment, and professional product design. The project uses FastAPI for the backend API, PostgreSQL for relational data, Redis for caching, Qdrant for vector search, Docker for local infrastructure, and React with TypeScript for the frontend dashboard.
+
+The platform includes real authentication using JWT access tokens. Users can register, log in, access protected routes, create customers, upload text documents, index documents, and ask AI questions against uploaded content.
+
+Mohamad wants the project to look professional enough to deploy on Amazon Web Services and present as a real product. He prefers a clean enterprise admin-center design with gray and white colors, simple navigation, professional tables, and minimal visual noise.
+
+The main goal of the project is to demonstrate that Mohamad can build and ship a complete AI software product, not just a small demo. The project includes backend APIs, database models, authentication, document upload, vector search, RAG answer generation, frontend UI, Docker orchestration, and future cloud deployment.
+
+Mohamad plans to use this project in his portfolio to show skills in Python, FastAPI, Docker, PostgreSQL, Redis, Qdrant, OpenAI integration, vector search, React, TypeScript, and AWS deployment.
+
+The ideal user of the Smart RAG Platform is an account manager, support team, customer success manager, or internal operations team that needs to search customer knowledge and receive AI answers based on uploaded documents.
+
+The product can help teams understand customer risk, summarize customer notes, identify renewal concerns, prepare follow-up plans, and answer questions using trusted source chunks.
+
+Mohamad wants the product to feel like a serious B2B SaaS application. The frontend should be simple, solid, professional, and similar to an enterprise admin center.
+
+Recommended next steps for Mohamad are to finalize the frontend design, take professional screenshots, update the README, dockerize the frontend, prepare production environment variables, and deploy the project on AWS.

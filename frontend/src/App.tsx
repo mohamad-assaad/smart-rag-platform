@@ -44,9 +44,16 @@ type AnswerResponse = {
 type AuthMode = "login" | "register";
 type ActiveSection = "overview" | "customers" | "documents" | "upload" | "ask";
 
+type SearchOption = {
+  label: string;
+  description: string;
+  section: ActiveSection;
+};
+
 function App() {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [activeSection, setActiveSection] = useState<ActiveSection>("overview");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [email, setEmail] = useState("admin@example.com");
   const [password, setPassword] = useState("admin12345");
@@ -92,10 +99,112 @@ function App() {
     [customers, selectedCustomerId]
   );
 
+  const searchOptions = useMemo<SearchOption[]>(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) {
+      return [];
+    }
+
+    const pageOptions: Array<SearchOption & { keywords: string[] }> = [
+      {
+        label: "Overview",
+        description: "Open the main dashboard overview.",
+        section: "overview",
+        keywords: ["overview", "home", "dashboard", "main"],
+      },
+      {
+        label: "Customers",
+        description: "Create and manage customer records.",
+        section: "customers",
+        keywords: ["customers", "customer", "client", "clients", "cu"],
+      },
+      {
+        label: "Documents",
+        description: "View uploaded documents.",
+        section: "documents",
+        keywords: ["documents", "document", "docs", "files", "file", "do"],
+      },
+      {
+        label: "Upload knowledge",
+        description: "Upload and index a customer text file.",
+        section: "upload",
+        keywords: ["upload", "knowledge", "index", "file upload", "up"],
+      },
+      {
+        label: "Ask AI",
+        description: "Ask questions against indexed documents.",
+        section: "ask",
+        keywords: ["ask", "ai", "answer", "question", "rag"],
+      },
+    ];
+
+    const matchingPages = pageOptions.filter((option) => {
+      const searchableText = `${option.label} ${
+        option.description
+      } ${option.keywords.join(" ")}`.toLowerCase();
+
+      return searchableText.includes(query);
+    });
+
+    const matchingCustomers: SearchOption[] = customers
+      .filter((customer) =>
+        `${customer.name} ${customer.description || ""}`
+          .toLowerCase()
+          .includes(query)
+      )
+      .slice(0, 3)
+      .map((customer) => ({
+        label: customer.name,
+        description: "Customer record",
+        section: "customers",
+      }));
+
+    const matchingDocuments: SearchOption[] = uploadedDocuments
+      .filter((document) => document.file_name.toLowerCase().includes(query))
+      .slice(0, 3)
+      .map((document) => ({
+        label: document.file_name,
+        description: "Uploaded document",
+        section: "documents",
+      }));
+
+    return [...matchingPages, ...matchingCustomers, ...matchingDocuments].slice(
+      0,
+      6
+    );
+  }, [searchQuery, customers, uploadedDocuments]);
+
   function getAuthHeaders(savedToken: string) {
     return {
       Authorization: `Bearer ${savedToken}`,
     };
+  }
+
+  function handleSearchSelect(option: SearchOption) {
+    setActiveSection(option.section);
+    setSearchQuery("");
+    setDashboardMessage("");
+    setUploadMessage("");
+    setAnswerMessage("");
+  }
+
+  function handleGlobalSearch() {
+    const firstOption = searchOptions[0];
+
+    if (firstOption) {
+      handleSearchSelect(firstOption);
+      return;
+    }
+
+    const query = searchQuery.trim();
+
+    if (!query) {
+      return;
+    }
+
+    setActiveSection("overview");
+    setDashboardMessage(`No result found for "${query}".`);
   }
 
   async function fetchCurrentUser(savedToken: string) {
@@ -226,6 +335,7 @@ function App() {
     setUploadedDocuments([]);
     setAnswerResult(null);
     setShowSources(false);
+    setSearchQuery("");
     setActiveSection("overview");
     setMessage("Logged out.");
   }
@@ -447,6 +557,8 @@ function App() {
             </p>
           </div>
 
+          {dashboardMessage && <p className="message-box">{dashboardMessage}</p>}
+
           <div className="admin-summary-grid">
             <article>
               <span>Total customers</span>
@@ -624,40 +736,49 @@ function App() {
             </p>
           </div>
 
-          {selectedCustomer && (
-            <p className="message-box">
-              Selected customer: <strong>{selectedCustomer.name}</strong>
-            </p>
-          )}
+          <form className="upload-modern-card" onSubmit={handleUploadDocument}>
+            <div className="upload-modern-banner">
+              <span className="upload-banner-label">Selected customer</span>
+              <strong>{selectedCustomer?.name || "No customer selected"}</strong>
+            </div>
 
-          <form className="admin-form-grid" onSubmit={handleUploadDocument}>
-            <select
-              value={selectedCustomerId}
-              onChange={(event) => setSelectedCustomerId(event.target.value)}
-            >
-              <option value="">Select customer</option>
-              {customers.map((customer) => (
-                <option value={customer.id} key={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
+            <div className="upload-modern-grid">
+              <div className="upload-field">
+                <label>Customer</label>
+                <select
+                  value={selectedCustomerId}
+                  onChange={(event) => setSelectedCustomerId(event.target.value)}
+                >
+                  <option value="">Select customer</option>
+                  {customers.map((customer) => (
+                    <option value={customer.id} key={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <input
-              type="file"
-              accept=".txt,text/plain"
-              onChange={(event) =>
-                setSelectedFile(event.target.files?.[0] || null)
-              }
-            />
+              <div className="upload-field">
+                <label>Document file</label>
+                <input
+                  type="file"
+                  accept=".txt,text/plain"
+                  onChange={(event) =>
+                    setSelectedFile(event.target.files?.[0] || null)
+                  }
+                />
+              </div>
 
-            <button
-              className="primary-button"
-              type="submit"
-              disabled={isUploading}
-            >
-              {isUploading ? "Processing..." : "Upload + index"}
-            </button>
+              <div className="upload-action">
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={isUploading}
+                >
+                  {isUploading ? "Processing..." : "Upload + index"}
+                </button>
+              </div>
+            </div>
           </form>
 
           {uploadMessage && <p className="message-box">{uploadMessage}</p>}
@@ -975,21 +1096,39 @@ function App() {
 
       <section className="admin-main">
         <header className="admin-topbar">
-          <div className="global-search">
-            Search customers, documents, and answers
-          </div>
+          <div className="global-search-wrap">
+            <span className="search-icon">⌕</span>
 
-          <div className="topbar-actions">
-            <span className="connection-pill">
-              <span className="status-dot" />
-              Backend connected
-            </span>
+            <input
+              className="global-search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleGlobalSearch();
+                }
 
-            <button className="icon-button">?</button>
+                if (event.key === "Escape") {
+                  setSearchQuery("");
+                }
+              }}
+              placeholder="Search pages, customers, or documents"
+            />
 
-            <div className="avatar">
-              {currentUser.email.charAt(0).toUpperCase()}
-            </div>
+            {searchOptions.length > 0 && (
+              <div className="search-suggestions">
+                {searchOptions.map((option) => (
+                  <button
+                    type="button"
+                    key={`${option.section}-${option.label}`}
+                    onClick={() => handleSearchSelect(option)}
+                  >
+                    <strong>{option.label}</strong>
+                    <span>{option.description}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </header>
 

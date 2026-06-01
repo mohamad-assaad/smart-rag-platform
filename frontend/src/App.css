@@ -422,84 +422,102 @@ textarea:focus {
 /* TOP BAR */
 
 .admin-topbar {
-  height: 50px;
+  position: relative;
+  height: 58px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 8px 14px 8px 26px;
-  border-bottom: 1px solid #e5e5e5;
+  justify-content: center;
+  padding: 0 24px;
+  border-bottom: 1px solid #e6e6e6;
   background: #ffffff;
+}
+
+.global-search-wrap {
+  position: relative;
+  width: min(560px, 100%);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  z-index: 20;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: #7a7a7a;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .global-search {
-  width: min(470px, 42vw);
-  height: 34px;
-  display: flex;
-  align-items: center;
-  color: #606060;
+  width: 100%;
+  height: 42px;
+  padding: 0 16px 0 40px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
   background: #ffffff;
-  border: 1px solid #c8c8c8;
-  border-radius: 3px;
-  padding: 0 12px;
-  font-size: 0.92rem;
+  color: #1f1f1f;
+  font-size: 0.95rem;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.global-search::before {
-  content: "⌕";
-  margin-right: 9px;
-  color: #333333;
+.global-search::placeholder {
+  color: #8a8a8a;
+  text-align: center;
 }
 
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.global-search:focus {
+  border-color: #111111;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.06);
+  text-align: left;
 }
 
-.connection-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #242424;
+.global-search:focus::placeholder {
+  text-align: left;
+}
+
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
   background: #ffffff;
-  border: 1px solid #d8d8d8;
-  border-radius: 999px;
-  padding: 7px 10px;
-  font-size: 0.86rem;
-  white-space: nowrap;
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  padding: 8px;
+  z-index: 100;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #159947;
-}
-
-.icon-button {
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
+.search-suggestions button {
+  width: 100%;
+  border: none;
   background: transparent;
-  color: #242424;
-  font-size: 1rem;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
 }
 
-.icon-button:hover {
-  background: #f0f0f0;
+.search-suggestions button:hover {
+  background: #f5f5f5;
 }
 
-.avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: #e8e8e8;
-  color: #242424;
-  font-weight: 700;
+.search-suggestions strong {
+  font-size: 0.92rem;
+  color: #161616;
+  font-weight: 600;
+}
+
+.search-suggestions span {
+  font-size: 0.82rem;
+  color: #6f6f6f;
 }
 
 /* COMMAND BAR */
@@ -634,6 +652,7 @@ textarea:focus {
 
 .admin-empty-state.compact {
   min-height: 190px;
+  margin-top: 18px;
 }
 
 .empty-icon {
@@ -675,6 +694,135 @@ textarea:focus {
   grid-template-columns: minmax(180px, 1fr) minmax(240px, 1.4fr) auto;
   gap: 10px;
   margin-bottom: 16px;
+}
+
+/* MODERN UPLOAD */
+
+.upload-modern-card {
+  border: 1px solid #e3e3e3;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.upload-modern-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.upload-banner-label {
+  font-size: 0.82rem;
+  color: #6f6f6f;
+  font-weight: 500;
+}
+
+.upload-modern-banner strong {
+  font-size: 1rem;
+  color: #171717;
+  font-weight: 650;
+}
+
+.upload-modern-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(320px, 1.45fr) auto;
+  gap: 14px;
+  padding: 20px;
+  align-items: end;
+}
+
+.upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upload-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444444;
+}
+
+.upload-field select {
+  height: 46px;
+  border: 1px solid #d5d5d5;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 0.94rem;
+  color: #1f1f1f;
+}
+
+.upload-field select:focus {
+  border-color: #111111;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.06);
+  outline: none;
+}
+
+.upload-field input[type="file"] {
+  height: 46px;
+  padding: 0;
+  border: 1px solid #d5d5d5;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #555555;
+  font-size: 0.92rem;
+  cursor: pointer;
+  overflow: hidden;
+  line-height: 46px;
+}
+
+.upload-field input[type="file"]::file-selector-button {
+  height: 46px;
+  margin: 0 14px 0 0;
+  padding: 0 18px;
+  border: 0;
+  border-right: 1px solid #d5d5d5;
+  background: #f5f5f5;
+  color: #111111;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.upload-field input[type="file"]::file-selector-button:hover {
+  background: #111111;
+  color: #ffffff;
+}
+
+.upload-field input[type="file"]:focus {
+  border-color: #111111;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.06);
+  outline: none;
+}
+
+.upload-action {
+  display: flex;
+  align-items: end;
+}
+
+.upload-action .primary-button {
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 10px;
+  border: none;
+  background: #111111;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.94rem;
+  white-space: nowrap;
+  box-shadow: 0 10px 20px rgba(17, 17, 17, 0.12);
+}
+
+.upload-action .primary-button:hover {
+  background: #000000;
 }
 
 /* TABLE */
@@ -858,6 +1006,14 @@ textarea:focus {
   .admin-summary-grid article {
     border-right: 0;
   }
+
+  .upload-modern-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-action .primary-button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 800px) {
@@ -890,8 +1046,8 @@ textarea:focus {
     padding: 8px 14px;
   }
 
-  .global-search {
-    display: none;
+  .global-search-wrap {
+    width: 100%;
   }
 
   .command-bar {
@@ -909,9 +1065,5 @@ textarea:focus {
 
   .admin-form-grid {
     grid-template-columns: 1fr;
-  }
-
-  .connection-pill {
-    display: none;
   }
 }
