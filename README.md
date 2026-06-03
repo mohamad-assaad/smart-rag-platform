@@ -1,99 +1,87 @@
 # Smart RAG Platform
 
-A production-style full-stack AI application for uploading customer knowledge, indexing documents, and generating grounded AI answers with source tracking.
+Smart RAG Platform is a full-stack AI/RAG application that allows users to upload knowledge documents or import customer profile data from Dynamics 365 CRM, then ask AI-powered questions over the indexed data with source tracking.
 
-Smart RAG Platform is built as an enterprise customer intelligence workspace. It allows teams to create customer records, upload text knowledge files, split documents into searchable chunks, store embeddings in a vector database, and ask AI-powered questions against indexed content.
-
-The project demonstrates a complete AI software product workflow, including authentication, backend APIs, database persistence, vector search, document processing, frontend dashboard design, Docker-based infrastructure, and production deployment preparation.
+The project demonstrates a production-style architecture using a React frontend, FastAPI backend, PostgreSQL, Redis, Qdrant vector database, Docker Compose, JWT authentication, optional OpenAI integration, local fallback AI logic, and Microsoft Dynamics 365 / Dataverse integration.
 
 ---
 
-## Project Goals
+## Key Features
 
-The main goal of this project is to demonstrate the ability to build and ship a complete AI software product, not just a small demo.
-
-This project includes:
-
-* A FastAPI backend with protected API routes
-* JWT authentication
-* PostgreSQL database models
-* Customer and document management
-* Document upload and chunking
-* Vector indexing with Qdrant
-* Redis service support
-* RAG question answering with source tracking
-* OpenAI integration with local fallback behavior
-* React + TypeScript frontend
-* Professional admin-center user interface
-* Docker Compose infrastructure
-* Production frontend build support
-* Preparation for AWS deployment
+* User authentication with JWT
+* Login and registration flow
+* Admin dashboard
+* Customer management page
+* Document management page
+* Knowledge document upload
+* Dynamics 365 CRM customer profile import
+* Dataverse Web API integration
+* Microsoft Entra ID App Registration authentication
+* RAG-ready document conversion
+* Text chunking for uploaded and imported knowledge
+* Vector embeddings stored in Qdrant
+* AI question answering over indexed knowledge
+* Source tracking for AI answers
+* Quick Questions / prompt suggestions
+* Local fallback AI when OpenAI is unavailable
+* Docker Compose development environment
+* Production-style separation of backend, frontend, database, cache, and vector store
 
 ---
 
-## Features
+## Screenshots
 
-### Authentication
+### Login and Authentication
 
-* User registration
-* User login
-* JWT access tokens
-* Protected backend routes
-* Current user session handling
+![Login page](screenshots/01-login.png)
+
+The platform includes a clean login and registration experience backed by JWT authentication.
+
+### Admin Dashboard
+
+![Overview dashboard](screenshots/02-dashboard.png)
+
+The dashboard provides an enterprise-style workspace for managing customer intelligence, uploaded knowledge, Dynamics CRM imports, and AI answer activity.
 
 ### Customer Management
 
-* Create customer records
-* View customer list
-* Store customer descriptions
-* Organize uploaded documents by customer
+![Customers page](screenshots/02-customers.png)
 
-### Document Upload and Indexing
+The Customers page demonstrates the admin interface for managing customer records inside the platform.
 
-* Upload `.txt` customer knowledge files
-* Automatically create document records
-* Split uploaded text into clean chunks
-* Store chunks for retrieval
-* Generate vector embeddings
-* Store vectors in Qdrant
+### Upload Knowledge
 
-### Ask AI
+![Upload knowledge page](screenshots/04-upload-knowledge.png)
 
-* Ask questions against uploaded customer documents
-* Hybrid-style retrieval flow
-* AI answer generation
-* Source tracking
-* Sources hidden by default
-* Expandable source chunks
-* Local fallback answers when OpenAI is unavailable
+Users can upload knowledge documents, which are processed into chunks and prepared for retrieval.
 
-### Frontend Admin Dashboard
+### Dynamics 365 CRM Integration
 
-* Enterprise admin-center layout
-* Gray and white professional design
-* Left icon rail
-* Main navigation panel
-* Centered smart search bar
-* Search suggestions for pages and content
-* Overview, Customers, Documents, Upload Knowledge, and Ask AI pages
-* Modern Upload Knowledge interface
-* Clean Ask AI answer panel
+![Dynamics page](screenshots/03-dynamics.png)
+
+The Dynamics page connects the platform to Microsoft Dataverse through Microsoft Entra ID authentication and the Dataverse Web API.
+
+### Import from Dynamics
+
+![Dynamics import success](screenshots/04-dynamics-import-success.png)
+
+Dynamics customer profile records are imported, converted into RAG-ready text, chunked, embedded, and stored in Qdrant for semantic search.
+
+### Ask AI with Source Tracking
+
+![AI answer with sources](screenshots/06-ai-answer-sources.png)
+
+The Ask AI page answers questions over indexed documents and imported CRM data while showing the sources used to generate the response.
+
+### GitHub Repository
+
+![GitHub repository](screenshots/07-github-repo.png)
+
+The project is version-controlled with Git and published to GitHub as a portfolio-ready full-stack AI application.
 
 ---
 
 ## Tech Stack
-
-### Backend
-
-* Python
-* FastAPI
-* SQLAlchemy
-* PostgreSQL
-* Redis
-* Qdrant
-* OpenAI API
-* JWT authentication
-* Docker
 
 ### Frontend
 
@@ -101,95 +89,190 @@ This project includes:
 * TypeScript
 * Vite
 * CSS
-* Fetch API
-* Local storage token handling
+* Enterprise-style admin UI
 
-### Infrastructure
+### Backend
 
+* FastAPI
+* Python
+* SQLAlchemy
+* JWT authentication
+* REST API architecture
+
+### Data and Infrastructure
+
+* PostgreSQL
+* Redis
+* Qdrant vector database
 * Docker Compose
-* PostgreSQL container
-* Redis container
-* Qdrant container
-* FastAPI backend container
-* Frontend production Dockerfile with Nginx
+
+### AI and RAG
+
+* Document upload
+* Text chunking
+* Embeddings
+* Vector search
+* AI answer generation
+* Source tracking
+* Optional OpenAI API
+* Local fallback answer engine
+
+### CRM Integration
+
+* Dynamics 365 CRM
+* Microsoft Dataverse
+* Dataverse Web API
+* Microsoft Entra ID App Registration
+* OAuth client credentials flow
 
 ---
 
-## Architecture
+## Architecture Overview
+
+The platform follows a full-stack architecture:
 
 ```text
-User
- |
- |  React + TypeScript Frontend
- |  - Login/Register
- |  - Customers
- |  - Document Upload
- |  - Ask AI
- |
- v
+React + TypeScript Frontend
+        |
+        v
 FastAPI Backend
- |
- |-- Auth Module
- |   - Register
- |   - Login
- |   - JWT verification
- |
- |-- Customers Module
- |   - Create customers
- |   - List customers
- |
- |-- Documents Module
- |   - Upload text files
- |   - Store document content
- |
- |-- RAG Module
- |   - Chunk documents
- |   - Generate embeddings
- |   - Store vectors in Qdrant
- |   - Retrieve relevant chunks
- |   - Generate AI answers
- |
- |-- PostgreSQL
- |   - Users
- |   - Customers
- |   - Documents
- |   - Chunks
- |
- |-- Redis
- |   - Cache/service support
- |
- |-- Qdrant
- |   - Vector search
- |
- |-- OpenAI
-     - Answer generation when API key is available
+        |
+        +--> PostgreSQL
+        |       Users, customers, documents, chunks
+        |
+        +--> Redis
+        |       Production-style service architecture
+        |
+        +--> Qdrant
+        |       Vector storage and semantic retrieval
+        |
+        +--> OpenAI or Local Fallback AI
+        |       AI answer generation
+        |
+        +--> Dynamics 365 / Dataverse
+                CRM customer profile import
 ```
 
 ---
 
-## Screenshots
+## RAG Pipeline
 
-Add screenshots inside the `screenshots` folder.
+The RAG pipeline works as follows:
 
-Recommended screenshot files:
+1. User uploads a knowledge document or imports customer profile data from Dynamics 365 CRM.
+2. Backend converts the content into clean RAG-ready text.
+3. Text is split into meaningful chunks.
+4. Chunks are stored in PostgreSQL.
+5. Embeddings are created for each chunk.
+6. Vectors are stored in Qdrant.
+7. User asks a question in the Ask AI page.
+8. Backend retrieves the most relevant chunks from Qdrant.
+9. AI generates an answer using the retrieved context.
+10. Frontend displays the answer with source tracking.
+
+---
+
+## Dynamics 365 CRM Integration
+
+The platform includes a working Microsoft Dynamics 365 / Dataverse integration.
+
+The integration uses:
+
+* Microsoft Entra ID App Registration
+* Tenant ID
+* Client ID
+* Client Secret
+* Power Platform Application User
+* Dataverse Web API
+* OAuth access token flow
+
+CRM records are imported from a custom table and converted into RAG-ready customer profile text.
+
+### Dynamics Table
 
 ```text
-screenshots/frontend-login.png
-screenshots/frontend-overview.png
-screenshots/frontend-customers.png
-screenshots/frontend-upload.png
-screenshots/frontend-ask-ai-answer.png
-screenshots/frontend-ask-ai-sources.png
+Table logical name: new_customerprofile
+Entity set name: new_customerprofiles
 ```
 
-Example:
+### CRM Fields Used
 
-```md
-![Login Page](screenshots/frontend-login.png)
-![Overview Page](screenshots/frontend-overview.png)
-![Upload Knowledge](screenshots/frontend-upload.png)
-![Ask AI Answer](screenshots/frontend-ask-ai-answer.png)
+```text
+new_customername
+new_email
+new_phone
+new_country
+new_customersegment
+new_preferredchannel
+new_emailconsent
+new_smsconsent
+new_lastinteractiondate
+new_recentcomplaint
+new_interestarea
 ```
+
+### Dynamics Import Flow
+
+1. Backend authenticates with Microsoft Entra ID.
+2. Backend receives an OAuth access token.
+3. Backend calls the Dataverse Web API.
+4. Customer profile records are retrieved from Dynamics 365.
+5. CRM JSON records are converted into readable RAG text.
+6. The imported CRM data is saved as:
+
+```text
+dynamics_customer_profiles.txt
+```
+
+7. The backend chunks the document.
+8. Embeddings are created.
+9. Vectors are stored in Qdrant.
+10. The frontend automatically selects the imported document.
+11. The user can ask AI questions over CRM customer data.
+
+---
+
+## Example AI Questions
+
+The platform supports questions such as:
+
+```text
+Which customers are from Qatar?
+```
+
+Expected answer:
+
+```text
+Ahmed Ali and Omar Hassan
+```
+
+```text
+Which customers gave SMS consent?
+```
+
+Expected answer:
+
+```text
+Ahmed Ali and Omar Hassan
+```
+
+```text
+Who has a blocked card complaint?
+```
+
+```text
+Summarize all Dynamics customer profiles.
+```
+
+```text
+Which customers are from Syria?
+```
+
+```text
+Did Khaled give SMS consent?
+```
+
+The fallback AI logic also supports country-based questions, specific customer questions, consent questions, complaint questions, and summary-style prompts.
 
 ---
 
@@ -202,11 +285,31 @@ git clone <your-repository-url>
 cd smart-rag-platform
 ```
 
----
+### 2. Create the environment file
 
-## Backend Setup
+Create a local `.env` file in the project root.
 
-The backend runs through Docker Compose.
+Do not commit this file.
+
+Example:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=smart_rag
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/smart_rag
+
+JWT_SECRET_KEY=change-this-secret
+
+OPENAI_API_KEY=
+
+DYNAMICS_TENANT_ID=
+DYNAMICS_CLIENT_ID=
+DYNAMICS_CLIENT_SECRET=
+DYNAMICS_RESOURCE=https://your-org.crm4.dynamics.com
+```
+
+### 3. Start backend services
 
 From the project root:
 
@@ -214,31 +317,9 @@ From the project root:
 docker compose up --build
 ```
 
-Backend health check:
+### 4. Start the frontend
 
-```text
-http://127.0.0.1:8000/health
-```
-
-Expected response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-API documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-## Frontend Setup
-
-Open a new terminal and run:
+Open a second terminal:
 
 ```bash
 cd frontend
@@ -246,216 +327,118 @@ npm install
 npm run dev -- --force
 ```
 
-Frontend URL:
+### 5. Open the application
 
 ```text
 http://localhost:5173/
 ```
 
----
-
-## Frontend Production Build
-
-To verify the frontend production build:
-
-```bash
-cd frontend
-npm run build
-```
-
-Expected successful output:
+### 6. Check backend health
 
 ```text
-vite building client environment for production...
-built successfully
+http://127.0.0.1:8000/health
 ```
-
----
-
-## Environment Variables
-
-### Root `.env.example`
-
-Create a `.env` file based on `.env.example`.
-
-```env
-# Backend
-DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres:5432/smart_rag
-REDIS_URL=redis://redis:6379/0
-QDRANT_URL=http://qdrant:6333
-JWT_SECRET_KEY=change-this-secret-in-production
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
-
-# OpenAI
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4o-mini
-
-# Frontend local development
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
-### Frontend `.env.example`
-
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
-Do not commit real secrets or API keys.
-
----
-
-## Main API Flow
-
-### Authentication
-
-1. Register user
-2. Login user
-3. Store JWT access token
-4. Use token for protected requests
-
-### Customer Workflow
-
-1. Create a customer
-2. Select customer in the dashboard
-3. Upload a `.txt` knowledge document
-
-### RAG Workflow
-
-1. Upload document
-2. Create document chunks
-3. Generate embeddings
-4. Store vectors in Qdrant
-5. Ask a question
-6. Retrieve relevant chunks
-7. Generate an AI answer
-8. Show answer with optional sources
-
----
-
-## Example Test Question
-
-Using the included Mohamad profile test document, ask:
-
-```text
-What is the main goal of Mohamad?
-```
-
-Expected answer:
-
-```text
-Mohamad's main goal is to demonstrate that he can build and ship a complete AI software product, not just a small demo.
-
-Recommendation: finalize the frontend design, take professional screenshots, update the README, dockerize the frontend, prepare production environment variables, and deploy the project on AWS.
-```
-
----
-
-## OpenAI Fallback Behavior
-
-If the OpenAI API key is not configured or the API request fails, the backend uses a local fallback answer generator.
-
-This keeps the product usable during local development and portfolio demonstrations.
-
-The fallback system is especially useful for:
-
-* Testing the full RAG flow
-* Avoiding broken demos when OpenAI is unavailable
-* Showing a working AI answer interface without requiring a live API key
 
 ---
 
 ## Docker Services
 
-The local Docker Compose setup includes:
+The local development environment uses Docker Compose for the backend infrastructure.
+
+Typical services include:
+
+* FastAPI backend
+* PostgreSQL database
+* Redis
+* Qdrant vector database
+
+Important Docker files:
 
 ```text
-postgres
-redis
-qdrant
-backend api
-```
-
-The frontend also includes a production Dockerfile using:
-
-```text
-Node.js build stage
-Nginx serving stage
+docker-compose.yml
+docker-compose.prod.yml
+frontend/Dockerfile
+backend/requirements.txt
 ```
 
 ---
 
-## Frontend Dockerfile
+## Environment and Security Notes
 
-The frontend Dockerfile builds the React application and serves the static production files with Nginx.
+Real secrets are stored only in the local root `.env` file.
 
-```dockerfile
-FROM node:20-alpine AS build
+The `.env` file must not be committed.
 
-WORKDIR /app
+Safe environment variable usage in `docker-compose.yml` should look like this:
 
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-
-COPY --from=build /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+```yaml
+DYNAMICS_TENANT_ID: ${DYNAMICS_TENANT_ID:-}
+DYNAMICS_CLIENT_ID: ${DYNAMICS_CLIENT_ID:-}
+DYNAMICS_CLIENT_SECRET: ${DYNAMICS_CLIENT_SECRET:-}
 ```
+
+Security reminders:
+
+* Do not commit `.env`
+* Do not commit real client secrets
+* Do not commit access tokens
+* Do not expose Microsoft Entra secrets in screenshots
+* Rotate any secret that was accidentally exposed
+* Keep production credentials outside source control
 
 ---
 
-## Production Deployment Plan
+## Important Project Files
 
-Recommended first production deployment:
+### Frontend
 
 ```text
-AWS EC2 + Docker Compose
+frontend/src/App.tsx
+frontend/src/App.css
+frontend/src/index.css
 ```
 
-Production services:
+### Backend
 
-* Frontend container
-* Backend container
-* PostgreSQL container
-* Redis container
-* Qdrant container
+```text
+backend/app/main.py
+backend/app/auth.py
+backend/app/models.py
+backend/app/database.py
+backend/app/rag/chunking.py
+backend/app/rag/llm.py
+backend/app/rag/router.py
+backend/app/rag/service.py
+backend/app/rag/embeddings.py
+backend/app/integrations/dynamics.py
+backend/app/integrations/router.py
+backend/app/integrations/__init__.py
+```
 
-Future improvements:
+### Docker and Config
 
-* Nginx reverse proxy
-* HTTPS with Certbot
-* Domain name
-* Managed PostgreSQL with Amazon RDS
-* Managed Redis with ElastiCache
-* Persistent Qdrant storage
-* CI/CD with GitHub Actions
-* CloudWatch logging
-* S3 document storage
+```text
+docker-compose.yml
+docker-compose.prod.yml
+frontend/Dockerfile
+backend/requirements.txt
+```
 
 ---
 
-## AWS Deployment Preparation
+## Backend API Areas
 
-Before deploying to AWS:
+The FastAPI backend includes endpoints for:
 
-* Verify `docker compose up --build` works locally
-* Confirm backend health endpoint works
-* Confirm frontend production build works
-* Confirm login works
-* Confirm customer creation works
-* Confirm upload and indexing works
-* Confirm Ask AI works
-* Confirm sources are hidden by default
-* Confirm screenshots are updated
-* Confirm README is complete
-* Confirm real secrets are not committed
+* Authentication
+* Customers
+* Documents
+* Uploads
+* RAG question answering
+* Dynamics CRM import
+* Health checks
+
+The backend can be extended with additional enterprise connectors, background jobs, observability, and deployment configuration.
 
 ---
 
@@ -463,33 +446,53 @@ Before deploying to AWS:
 
 Completed:
 
-* Backend API
-* Authentication
-* Customer management
-* Document upload
-* Chunking
-* Vector indexing
-* Ask AI flow
+* Full-stack application structure
+* React + TypeScript frontend
+* FastAPI backend
+* JWT authentication
+* PostgreSQL integration
+* Redis service
+* Qdrant vector database
+* Document upload flow
+* RAG chunking and retrieval
+* AI answer generation
 * Source tracking
-* Local fallback answers
-* Professional frontend dashboard
-* Frontend production build
-* Frontend Dockerfile
-* Screenshots folder
-
-Next steps:
-
-* Finalize README
-* Add production Docker Compose configuration
-* Prepare AWS EC2 deployment
-* Add Nginx reverse proxy
-* Add HTTPS
-* Deploy live version
+* Local fallback AI
+* Dynamics 365 CRM import
+* Dataverse Web API integration
+* Enterprise-style admin UI
+* Quick Questions for CRM data
+* Docker Compose setup
+* GitHub-ready screenshots
 
 ---
 
-## Author
+## Future Improvements
 
-Built by Mohamad Ali Assaad as a production-style AI portfolio project.
+Potential next improvements:
 
-This project demonstrates full-stack engineering, AI integration, backend architecture, frontend product design, Docker infrastructure, and cloud deployment readiness.
+* Deploy backend and services to AWS
+* Deploy frontend to a static hosting service
+* Add CI/CD pipeline
+* Add automated tests
+* Add role-based access control
+* Add background workers for large imports
+* Add PDF and DOCX parsing
+* Add richer analytics dashboard
+* Add multi-tenant workspace support
+* Add production monitoring and logging
+* Add support for more CRM and enterprise knowledge connectors
+
+---
+
+## Project Purpose
+
+This project was built to demonstrate the ability to design, build, integrate, and ship a complete AI software product.
+
+It combines full-stack development, cloud-ready architecture, enterprise CRM integration, authentication, vector search, retrieval-augmented generation, and practical AI user experience design.
+
+---
+
+## License
+
+This project is for portfolio and educational purposes.
